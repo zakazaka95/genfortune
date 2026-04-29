@@ -186,7 +186,7 @@ function Index() {
     setFortune(null);
     setError(null);
     setHint(null);
-    setPhase("connected");
+    setPhase("idle");
   };
 
   const showOpen = phase === "loading" || phase === "revealed";
