@@ -18,6 +18,7 @@ type Phase = "idle" | "connected" | "cracking" | "loading" | "revealed";
 
 const GENLAYER_CHAIN_ID = "0x107d"; // 4221
 const COOKIE_CONTRACT = "0x4175eAfb233f0055F084fFd9C10e493d80C88F04";
+const COOKIE_CONTRACT_NORMALIZED = COOKIE_CONTRACT.toLowerCase();
 const OPEN_COOKIE_SELECTOR = "0x4fddd4d4";
 const VALUE_WEI_HEX = "0x16345785D8A0000"; // 0.1 GEN
 
@@ -147,10 +148,13 @@ function Index() {
         await ensureGenLayerNetwork(eth);
       }
 
+      const contractAddress = COOKIE_CONTRACT;
+      console.log(contractAddress);
+
       const provider = new ethers.BrowserProvider(eth);
       const signer = await provider.getSigner();
       const abi = ["function open_cookie() payable returns (string)"];
-      const contract = new ethers.Contract(COOKIE_CONTRACT, abi, signer);
+      const contract = new ethers.Contract(ethers.getAddress(contractAddress.toLowerCase()), abi, signer);
 
       const tx = await contract.open_cookie({
         value: ethers.parseEther("0.1"),
