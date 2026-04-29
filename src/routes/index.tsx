@@ -330,7 +330,7 @@ function Index() {
         </p>
       )}
 
-      {phase === "revealed" && parsed && (
+      {phase === "revealed" && fortune && (
         <div className="mt-10 reveal-up w-full max-w-md">
           <div
             className="rounded-2xl bg-white px-8 py-8 text-center"
@@ -339,17 +339,19 @@ function Index() {
                 "0 1px 2px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
             }}
           >
-            <p
-              className={[
-                "uppercase tracking-[0.22em] mb-4 font-semibold",
-                tierClass(parsed.tier),
-              ].join(" ")}
-            >
-              {parsed.tier}
-            </p>
             <p className="text-lg sm:text-xl leading-relaxed text-neutral-900 tracking-tight">
-              “{parsed.message}”
+              {fortune}
             </p>
+            {txHash && (
+              <a
+                href={`https://explorer.genlayer.com/tx/${txHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-5 inline-block text-xs tracking-wide text-neutral-500 underline underline-offset-4 hover:text-neutral-900 transition-colors font-mono"
+              >
+                {txHash.slice(0, 10)}…{txHash.slice(-8)}
+              </a>
+            )}
           </div>
           <p className="mt-4 text-center text-[11px] tracking-wide text-neutral-400">
             Generated onchain with deterministic randomness.
