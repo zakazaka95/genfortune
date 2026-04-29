@@ -47,7 +47,7 @@ function Index() {
     setPhase("loading");
 
     try {
-      const response = await fetch("https://baseball-modeling-heather-videos.trycloudflare.com/open-cookie", {
+      const response = await fetch("https://local-anthony-imaging-nitrogen.trycloudflare.com/open-cookie", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
