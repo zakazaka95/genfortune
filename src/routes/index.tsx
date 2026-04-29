@@ -134,14 +134,15 @@ function Index() {
         await ensureGenLayerNetwork(eth);
       }
 
-      const contractAddress = COOKIE_CONTRACT;
-      console.log(contractAddress);
-
       const provider = new ethers.BrowserProvider(eth);
       const signer = await provider.getSigner();
-      const abi = ["function open_cookie() payable returns (string)"];
-      const contract = new ethers.Contract(ethers.getAddress(contractAddress.toLowerCase()), abi, signer);
+      const contract = new ethers.Contract(
+        ethers.getAddress(COOKIE_CONTRACT_NORMALIZED),
+        ["function open_cookie() payable returns (string)"],
+        signer
+      );
 
+      console.log("Calling contract.open_cookie");
       const tx = await contract.open_cookie({
         value: ethers.parseEther("0.1"),
       });
@@ -149,7 +150,7 @@ function Index() {
       const receipt = await tx.wait();
       console.log("Confirmed", receipt);
 
-      // Try to decode fortune from logs (last log's data)
+      // Decode fortune from emitted logs
       let revealed = "";
       const logs: any[] = receipt?.logs ?? [];
       for (let i = logs.length - 1; i >= 0; i--) {
@@ -157,18 +158,6 @@ function Index() {
         if (candidate && candidate.length > 2) {
           revealed = candidate;
           break;
-        }
-      }
-
-      // Fallback: static call to read return value
-      if (!revealed) {
-        try {
-          const ret: string = await contract.open_cookie.staticCall({
-            value: ethers.parseEther("0.1"),
-          });
-          revealed = ret;
-        } catch (e) {
-          console.warn("staticCall fallback failed", e);
         }
       }
 
