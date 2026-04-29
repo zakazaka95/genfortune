@@ -173,40 +173,54 @@ function Index() {
       );
 
       console.log("Calling contract.open_cookie_ai", userInput);
-      const tx = await contract.open_cookie_ai(userInput, {
-        value: ethers.parseEther("10"),
-      });
+      const iface = new ethers.Interface([
+        "function open_cookie_ai(string user_input) payable returns (string)",
+      ]);
+      const data = iface.encodeFunctionData("open_cookie_ai", [userInput]);
+      const value = ethers.parseEther("10");
+      const to = ethers.getAddress(COOKIE_CONTRACT.toLowerCase());
+
+      const tx = await contract.open_cookie_ai(userInput, { value });
       console.log("TX:", tx.hash);
       const receipt = await tx.wait();
       console.log("Confirmed", receipt);
 
       let revealed = "";
-      const logs: any[] = receipt?.logs ?? [];
-      for (let i = logs.length - 1; i >= 0; i--) {
-        const candidate = hexToUtf8(logs[i].data ?? "");
-        if (candidate && candidate.length > 2) {
-          revealed = candidate;
-          break;
+
+      // 1) Replay the call at the block it mined in to get the returned string.
+      try {
+        const callResult: string = await provider.call({
+          to,
+          from: wallet,
+          data,
+          value,
+          blockTag: receipt?.blockNumber,
+        });
+        if (callResult && callResult !== "0x") {
+          const [decoded] = iface.decodeFunctionResult("open_cookie_ai", callResult);
+          if (typeof decoded === "string" && decoded.length > 0) {
+            revealed = decoded;
+            console.log("Decoded return value:", revealed);
+          }
+        }
+      } catch (e) {
+        console.warn("Replay call failed, trying logs:", e);
+      }
+
+      // 2) Fallback: scan emitted logs for a string payload.
+      if (!revealed) {
+        const logs: any[] = receipt?.logs ?? [];
+        for (let i = logs.length - 1; i >= 0; i--) {
+          const candidate = hexToUtf8(logs[i].data ?? "");
+          if (candidate && candidate.length > 2) {
+            revealed = candidate;
+            break;
+          }
         }
       }
 
-      // Try to read latest fortune via a view, if exposed; otherwise fall back to log.
       if (!revealed) {
-        try {
-          const viewContract = new ethers.Contract(
-            ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-            ["function get_last_fortune(address) view returns (string)"],
-            provider
-          );
-          const v = await viewContract.get_last_fortune(wallet);
-          if (typeof v === "string" && v.length > 0) revealed = v;
-        } catch {
-          /* not available */
-        }
-      }
-
-      if (!revealed) {
-        setError("Waiting for blockchain result…");
+        setError("Couldn't read fortune from receipt. Try again.");
         setPhase("connected");
         return;
       }
