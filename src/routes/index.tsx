@@ -363,7 +363,7 @@ function Index() {
             </p>
           </div>
           <p className="mt-4 text-center text-[11px] tracking-wide text-neutral-400">
-            Generated via AI and validated across multiple nodes.
+            Generated onchain with deterministic randomness.
           </p>
         </div>
       )}
