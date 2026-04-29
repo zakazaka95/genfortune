@@ -137,106 +137,43 @@ function Index() {
 
     if (!userInput.trim()) {
       setHint("Try adding a word for a more personal result");
-    }
-
-    const eth = getEthereum();
-    if (!eth) {
-      setError("No wallet found.");
-      return;
-    }
-    if (!wallet) {
-      setError("Wallet not connected.");
       return;
     }
 
     setPhase("cracking");
-    await new Promise((r) => setTimeout(r, 700));
+    await new Promise((r) => setTimeout(r, 600));
     setPhase("loading");
     setLoadingText("Consulting the network…");
     if (loadingTimerRef.current) window.clearTimeout(loadingTimerRef.current);
     loadingTimerRef.current = window.setTimeout(() => {
       setLoadingText("Validators are agreeing…");
-    }, 1500);
+    }, 800);
 
     try {
-      const currentChain: string = await eth.request({ method: "eth_chainId" });
-      if (currentChain?.toLowerCase() !== GENLAYER_CHAIN_ID.toLowerCase()) {
-        await ensureGenLayerNetwork(eth);
+      const eth = getEthereum();
+      let provider: ethers.Provider;
+      if (eth) {
+        provider = new ethers.BrowserProvider(eth);
+      } else {
+        provider = new ethers.JsonRpcProvider(GENLAYER_NETWORK.rpcUrls[0]);
       }
 
-      const provider = new ethers.BrowserProvider(eth);
-      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-        ["function open_cookie_ai(string user_input) payable returns (string)"],
-        signer
+        ["function open_cookie_ai(string user_input) view returns (string)"],
+        provider
       );
 
-      console.log("Calling contract.open_cookie_ai", userInput);
-      const iface = new ethers.Interface([
-        "function open_cookie_ai(string user_input) payable returns (string)",
-      ]);
-      const data = iface.encodeFunctionData("open_cookie_ai", [userInput]);
-      const value = ethers.parseEther("10");
-      const to = ethers.getAddress(COOKIE_CONTRACT.toLowerCase());
+      console.log("Calling contract.open_cookie_ai (view)", userInput);
+      const result: string = await contract.open_cookie_ai(userInput);
+      console.log("Result:", result);
 
-      const tx = await contract.open_cookie_ai(userInput, { value });
-      console.log("TX:", tx.hash);
-      const receipt = await tx.wait();
-      console.log("Confirmed", receipt);
-
-      let revealed = "";
-
-      // 1) Replay the call at the block it mined in to get the returned string.
-      try {
-        const callResult: string = await provider.call({
-          to,
-          from: wallet,
-          data,
-          value,
-          blockTag: receipt?.blockNumber,
-        });
-        if (callResult && callResult !== "0x") {
-          const [decoded] = iface.decodeFunctionResult("open_cookie_ai", callResult);
-          if (typeof decoded === "string" && decoded.length > 0) {
-            revealed = decoded;
-            console.log("Decoded return value:", revealed);
-          }
-        }
-      } catch (e) {
-        console.warn("Replay call failed, trying logs:", e);
-      }
-
-      // 2) Fallback: scan emitted logs for a string payload.
-      if (!revealed) {
-        const logs: any[] = receipt?.logs ?? [];
-        for (let i = logs.length - 1; i >= 0; i--) {
-          const candidate = hexToUtf8(logs[i].data ?? "");
-          if (candidate && candidate.length > 2) {
-            revealed = candidate;
-            break;
-          }
-        }
-      }
-
-      if (!revealed) {
-        setError("Couldn't read fortune from receipt. Try again.");
-        setPhase("connected");
-        return;
-      }
-
-      setFortune(revealed);
+      setFortune(result);
       setPhase("revealed");
     } catch (err: any) {
       console.error(err);
-      const code = err?.code;
-      const msg: string = err?.shortMessage ?? err?.message ?? "";
-      if (code === 4001 || code === "ACTION_REJECTED" || /reject/i.test(msg)) {
-        setError("Transaction failed. Try again.");
-      } else {
-        setError("Transaction failed. Try again.");
-      }
-      setPhase("connected");
+      setError("Transaction failed. Try again.");
+      setPhase(wallet ? "connected" : "idle");
     } finally {
       if (loadingTimerRef.current) {
         window.clearTimeout(loadingTimerRef.current);
