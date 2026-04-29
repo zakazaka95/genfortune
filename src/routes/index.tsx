@@ -22,7 +22,12 @@ type Phase = "idle" | "connected" | "cracking" | "loading" | "revealed";
 type Tier = "LEGENDARY" | "UNIQUE" | "RARE" | "NORMAL" | "MYSTERY";
 
 const GENLAYER_CHAIN_ID = "0x107d"; // 4221
-const COOKIE_CONTRACT = "0xfB1C7913162800C75B63cE23278EB5f121c58dA3";
+const COOKIE_CONTRACT = "0x6bCFECe88eC72846E8785A51ca6140A898897841";
+
+const COOKIE_ABI = [
+  "function open_cookie() payable",
+  "event Fortune(string result)",
+];
 
 const GENLAYER_NETWORK = {
   chainId: GENLAYER_CHAIN_ID,
