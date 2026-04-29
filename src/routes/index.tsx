@@ -190,7 +190,11 @@ function Index() {
         }
       }
 
-      if (!revealed) revealed = "Your fortune awaits — but the cookie kept it secret.";
+      if (!revealed) {
+        setError("Waiting for blockchain result…");
+        setPhase("connected");
+        return;
+      }
 
       setFortune(revealed);
       setPhase("revealed");
