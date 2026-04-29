@@ -22,7 +22,7 @@ type Phase = "idle" | "connected" | "cracking" | "loading" | "revealed";
 type Tier = "LEGENDARY" | "UNIQUE" | "RARE" | "NORMAL" | "MYSTERY";
 
 const GENLAYER_CHAIN_ID = "0x107d"; // 4221
-const COOKIE_CONTRACT = "0x6009B068F10F85C424aCDB1F58115b4413B42751";
+const COOKIE_CONTRACT = "0xfB1C7913162800C75B63cE23278EB5f121c58dA3";
 
 const GENLAYER_NETWORK = {
   chainId: GENLAYER_CHAIN_ID,
@@ -100,7 +100,6 @@ function Index() {
   const [wallet, setWallet] = useState<string | null>(null);
   const [fortune, setFortune] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [userInput, setUserInput] = useState("");
   const [hint, setHint] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState("Consulting the network…");
   const loadingTimerRef = useRef<number | null>(null);
@@ -135,9 +134,24 @@ function Index() {
     setFortune(null);
     setHint(null);
 
-    if (!userInput.trim()) {
-      setHint("Try adding a word for a more personal result");
+    const eth = getEthereum();
+    if (!eth?.request) {
+      setError("No wallet found. Install Rabby or MetaMask.");
       return;
+    }
+
+    let activeWallet = wallet;
+    if (!activeWallet) {
+      try {
+        const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
+        activeWallet = accounts?.[0] ?? null;
+        setWallet(activeWallet);
+        await ensureGenLayerNetwork(eth);
+      } catch (err: any) {
+        console.error("connect failed:", err);
+        setError(err?.code === 4001 ? "Connection rejected" : "Could not connect wallet.");
+        return;
+      }
     }
 
     setPhase("cracking");
@@ -146,34 +160,64 @@ function Index() {
     setLoadingText("Consulting the network…");
     if (loadingTimerRef.current) window.clearTimeout(loadingTimerRef.current);
     loadingTimerRef.current = window.setTimeout(() => {
-      setLoadingText("Validators are agreeing…");
-    }, 800);
+      setLoadingText("Generating your fortune…");
+    }, 1000);
 
     try {
-      const eth = getEthereum();
-      let provider: ethers.Provider;
-      if (eth) {
-        provider = new ethers.BrowserProvider(eth);
-      } else {
-        provider = new ethers.JsonRpcProvider(GENLAYER_NETWORK.rpcUrls[0]);
-      }
+      const provider = new ethers.BrowserProvider(eth);
+      const signer = await provider.getSigner();
 
+      const abi = ["function open_cookie() payable returns (string)"];
+      const iface = new ethers.Interface(abi);
       const contract = new ethers.Contract(
         ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-        ["function open_cookie_ai(string user_input) view returns (string)"],
-        provider
+        abi,
+        signer
       );
 
-      console.log("Calling contract.open_cookie_ai (view)", userInput);
-      const result: string = await contract.open_cookie_ai(userInput);
-      console.log("Result:", result);
+      console.log("Calling contract.open_cookie (payable 10 GEN)");
+      const tx = await contract.open_cookie({ value: ethers.parseEther("10") });
+      console.log("tx sent:", tx.hash);
+      const receipt = await tx.wait();
+      console.log("tx confirmed:", receipt?.hash);
 
-      setFortune(result);
+      // Try to decode the returned string by replaying the call at the mined block
+      let revealed = "";
+      try {
+        const callResult = await provider.call({
+          to: tx.to ?? ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
+          from: activeWallet ?? undefined,
+          data: tx.data,
+          value: tx.value,
+          blockTag: receipt?.blockNumber,
+        });
+        if (callResult && callResult !== "0x") {
+          const [decoded] = iface.decodeFunctionResult("open_cookie", callResult);
+          revealed = String(decoded ?? "");
+        }
+      } catch (replayErr) {
+        console.warn("replay call failed:", replayErr);
+      }
+
+      // Fallback: scan receipt logs for a UTF-8 string payload
+      if (!revealed && receipt?.logs?.length) {
+        for (const log of receipt.logs) {
+          const candidate = hexToUtf8(log.data ?? "");
+          if (candidate && candidate.length > 4) {
+            revealed = candidate;
+            break;
+          }
+        }
+      }
+
+      if (!revealed) throw new Error("No result returned");
+
+      setFortune(revealed);
       setPhase("revealed");
     } catch (err: any) {
       console.error(err);
-      setError("Transaction failed. Try again.");
-      setPhase(wallet ? "connected" : "idle");
+      setError("Something went wrong. Try again.");
+      setPhase(activeWallet ? "connected" : "idle");
     } finally {
       if (loadingTimerRef.current) {
         window.clearTimeout(loadingTimerRef.current);
@@ -250,21 +294,9 @@ function Index() {
         />
       </div>
 
-      {/* Input + Action */}
+      {/* Action */}
       <div className="mt-2 w-full max-w-md flex flex-col items-center">
-        {(phase === "connected" || phase === "idle") && (
-          <input
-            type="text"
-            value={userInput}
-            onChange={(e) => {
-              setUserInput(e.target.value);
-              if (hint) setHint(null);
-            }}
-            placeholder="Tell the cookie something… (e.g. money, future, risk)"
-            className="w-full text-center bg-transparent border-0 border-b border-neutral-200 focus:border-neutral-900 outline-none py-3 text-[15px] tracking-tight placeholder:text-neutral-400 transition-colors"
-            aria-label="Whisper a word to the cookie"
-          />
-        )}
+
 
         <div className="mt-5 h-14 flex items-center justify-center">
           {(phase === "idle" || phase === "connected") && (
@@ -330,7 +362,7 @@ function Index() {
             </p>
           </div>
           <p className="mt-4 text-center text-[11px] tracking-wide text-neutral-400">
-            Generated via AI and validated across multiple nodes.
+            Generated onchain with deterministic randomness.
           </p>
         </div>
       )}
