@@ -15,17 +15,17 @@ export const Route = createFileRoute("/")({
 
 type Phase = "idle" | "connected" | "cracking" | "loading" | "revealed";
 
-const GENLAYER_CHAIN_ID = "0x3E9"; // 1001
+const GENLAYER_CHAIN_ID = "0x107d"; // 4221
 const COOKIE_CONTRACT = "0x4175eAfb233f0055F084fFd9C10e493d80C88F04";
 // keccak256("open_cookie()") first 4 bytes
 const OPEN_COOKIE_SELECTOR = "0xa6f2ae3a";
-const VALUE_WEI_HEX = "0x16345785d8a0000"; // 0.1 ether
+const VALUE_WEI_HEX = "0x16345785D8A0000"; // 0.1 GEN
 
 const GENLAYER_NETWORK = {
   chainId: GENLAYER_CHAIN_ID,
   chainName: "GenLayer Testnet",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://rpc.genlayer.com"],
+  rpcUrls: ["https://zksync-os-testnet-genlayer.zksync.dev"],
   blockExplorerUrls: [],
 };
 
