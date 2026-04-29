@@ -47,19 +47,26 @@ function Index() {
     setPhase("loading");
 
     try {
-      const res = await fetch("https://baseball-modeling-heather-videos.trycloudflare.com/open-cookie", {
+      const response = await fetch("https://baseball-modeling-heather-videos.trycloudflare.com/open-cookie", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: wallet ?? "0x123" }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          wallet: "0x123"
+        })
       });
-      const data = await res.json();
-      const text = typeof data?.fortune === "string" ? data.fortune : "The future smiles upon you.";
+
+      const data = await response.json();
+      console.log("Cookie response:", data);
+
       // small delay so the loading state feels intentional
       await new Promise((r) => setTimeout(r, 400));
-      setFortune(text);
+      setFortune(data.fortune);
       setPhase("revealed");
-    } catch {
-      setError("Could not reach the cookie. Try again.");
+    } catch (err) {
+      console.error("Failed to open cookie:", err);
+      setError("Request failed. The server may be offline or blocking browser requests (CORS).");
       setPhase("connected");
     }
   };
