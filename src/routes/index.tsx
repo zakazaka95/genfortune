@@ -267,13 +267,7 @@ function Index() {
         )}
 
         <div className="mt-5 h-14 flex items-center justify-center">
-          {phase === "idle" && (
-            <button onClick={connectWallet} className="btn-premium reveal-up">
-              Connect Wallet
-            </button>
-          )}
-
-          {phase === "connected" && (
+          {(phase === "idle" || phase === "connected") && (
             <button onClick={openCookie} className="btn-premium reveal-up">
               {fortune ? "Open Another" : "Open Your Fortune"}
             </button>
