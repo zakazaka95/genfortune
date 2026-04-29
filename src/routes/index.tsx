@@ -295,21 +295,9 @@ function Index() {
         />
       </div>
 
-      {/* Input + Action */}
+      {/* Action */}
       <div className="mt-2 w-full max-w-md flex flex-col items-center">
-        {(phase === "connected" || phase === "idle") && (
-          <input
-            type="text"
-            value={userInput}
-            onChange={(e) => {
-              setUserInput(e.target.value);
-              if (hint) setHint(null);
-            }}
-            placeholder="Tell the cookie something… (e.g. money, future, risk)"
-            className="w-full text-center bg-transparent border-0 border-b border-neutral-200 focus:border-neutral-900 outline-none py-3 text-[15px] tracking-tight placeholder:text-neutral-400 transition-colors"
-            aria-label="Whisper a word to the cookie"
-          />
-        )}
+
 
         <div className="mt-5 h-14 flex items-center justify-center">
           {(phase === "idle" || phase === "connected") && (
