@@ -22,7 +22,12 @@ type Phase = "idle" | "connected" | "cracking" | "loading" | "revealed";
 type Tier = "LEGENDARY" | "UNIQUE" | "RARE" | "NORMAL" | "MYSTERY";
 
 const GENLAYER_CHAIN_ID = "0x107d"; // 4221
-const COOKIE_CONTRACT = "0xfB1C7913162800C75B63cE23278EB5f121c58dA3";
+const COOKIE_CONTRACT = "0x6bCFECe88eC72846E8785A51ca6140A898897841";
+
+const COOKIE_ABI = [
+  "function open_cookie() payable",
+  "event Fortune(string result)",
+];
 
 const GENLAYER_NETWORK = {
   chainId: GENLAYER_CHAIN_ID,
@@ -186,7 +191,7 @@ function Index() {
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-        ["function open_cookie() payable returns (string)"],
+        COOKIE_ABI,
         signer
       );
 
@@ -194,10 +199,26 @@ function Index() {
       const tx = await contract.open_cookie({ value: ethers.parseEther("10") });
       console.log("tx sent:", tx.hash);
       setTxHash(tx.hash);
-      await tx.wait();
+      const receipt = await tx.wait();
       console.log("tx confirmed:", tx.hash);
 
-      setFortune("Fortune generated onchain ↓");
+      // 5) Extract Fortune event from logs
+      let result: string | null = null;
+      for (const log of receipt?.logs ?? []) {
+        try {
+          const parsed = contract.interface.parseLog(log);
+          if (parsed && parsed.name === "Fortune") {
+            result = String(parsed.args[0]);
+            break;
+          }
+        } catch {
+          /* not our event */
+        }
+      }
+
+      if (!result) throw new Error("Fortune event not found");
+
+      setFortune(result);
       setPhase("revealed");
     } catch (err: any) {
       console.error(err);
@@ -330,7 +351,7 @@ function Index() {
         </p>
       )}
 
-      {phase === "revealed" && fortune && (
+      {phase === "revealed" && parsed && (
         <div className="mt-10 reveal-up w-full max-w-md">
           <div
             className="rounded-2xl bg-white px-8 py-8 text-center"
@@ -339,15 +360,23 @@ function Index() {
                 "0 1px 2px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)",
             }}
           >
+            <p
+              className={[
+                "uppercase tracking-[0.22em] mb-4 font-semibold",
+                tierClass(parsed.tier),
+              ].join(" ")}
+            >
+              {parsed.tier}
+            </p>
             <p className="text-lg sm:text-xl leading-relaxed text-neutral-900 tracking-tight">
-              {fortune}
+              “{parsed.message}”
             </p>
             {txHash && (
               <a
                 href={`https://explorer.genlayer.com/tx/${txHash}`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-5 inline-block text-xs tracking-wide text-neutral-500 underline underline-offset-4 hover:text-neutral-900 transition-colors font-mono"
+                className="mt-5 inline-block text-[11px] tracking-wide text-neutral-400 underline underline-offset-4 hover:text-neutral-700 transition-colors font-mono"
               >
                 {txHash.slice(0, 10)}…{txHash.slice(-8)}
               </a>
