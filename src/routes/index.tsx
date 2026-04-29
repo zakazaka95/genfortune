@@ -99,6 +99,7 @@ function Index() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [wallet, setWallet] = useState<string | null>(null);
   const [fortune, setFortune] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState("Consulting the network…");
@@ -132,6 +133,7 @@ function Index() {
   const openCookie = async () => {
     setError(null);
     setFortune(null);
+    setTxHash(null);
     setHint(null);
 
     const eth = getEthereum();
@@ -141,82 +143,69 @@ function Index() {
     }
 
     let activeWallet = wallet;
-    if (!activeWallet) {
-      try {
-        const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
-        activeWallet = accounts?.[0] ?? null;
-        setWallet(activeWallet);
-        await ensureGenLayerNetwork(eth);
-      } catch (err: any) {
-        console.error("connect failed:", err);
-        setError(err?.code === 4001 ? "Connection rejected" : "Could not connect wallet.");
-        return;
-      }
-    }
-
-    setPhase("cracking");
-    await new Promise((r) => setTimeout(r, 600));
-    setPhase("loading");
-    setLoadingText("Consulting the network…");
-    if (loadingTimerRef.current) window.clearTimeout(loadingTimerRef.current);
-    loadingTimerRef.current = window.setTimeout(() => {
-      setLoadingText("Generating your fortune…");
-    }, 1000);
-
     try {
+      // 1) Connect wallet (always prompts if not yet authorized)
       const provider = new ethers.BrowserProvider(eth);
-      const signer = await provider.getSigner();
+      const accounts: string[] = await provider.send("eth_requestAccounts", []);
+      activeWallet = accounts?.[0] ?? activeWallet;
+      if (activeWallet) setWallet(activeWallet);
 
-      const abi = ["function open_cookie() payable returns (string)"];
-      const iface = new ethers.Interface(abi);
+      // 2) Force GenLayer network
+      setError("Switching to GenLayer…");
+      try {
+        await eth.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: GENLAYER_CHAIN_ID }],
+        });
+      } catch (switchErr: any) {
+        if (switchErr?.code === 4902 || /Unrecognized chain/i.test(switchErr?.message ?? "")) {
+          await eth.request({
+            method: "wallet_addEthereumChain",
+            params: [GENLAYER_NETWORK],
+          });
+        } else if (switchErr?.code === 4001) {
+          setError("Transaction cancelled");
+          return;
+        } else {
+          throw switchErr;
+        }
+      }
+      setError(null);
+
+      // 3) Begin cracking + loading sequence
+      setPhase("cracking");
+      await new Promise((r) => setTimeout(r, 600));
+      setPhase("loading");
+      setLoadingText("Consulting the network…");
+      if (loadingTimerRef.current) window.clearTimeout(loadingTimerRef.current);
+      loadingTimerRef.current = window.setTimeout(() => {
+        setLoadingText("Generating your fortune…");
+      }, 1000);
+
+      // 4) Contract call with signer
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-        abi,
+        ["function open_cookie() payable returns (string)"],
         signer
       );
 
       console.log("Calling contract.open_cookie (payable 10 GEN)");
       const tx = await contract.open_cookie({ value: ethers.parseEther("10") });
       console.log("tx sent:", tx.hash);
-      const receipt = await tx.wait();
-      console.log("tx confirmed:", receipt?.hash);
+      setTxHash(tx.hash);
+      await tx.wait();
+      console.log("tx confirmed:", tx.hash);
 
-      // Try to decode the returned string by replaying the call at the mined block
-      let revealed = "";
-      try {
-        const callResult = await provider.call({
-          to: tx.to ?? ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-          from: activeWallet ?? undefined,
-          data: tx.data,
-          value: tx.value,
-          blockTag: receipt?.blockNumber,
-        });
-        if (callResult && callResult !== "0x") {
-          const [decoded] = iface.decodeFunctionResult("open_cookie", callResult);
-          revealed = String(decoded ?? "");
-        }
-      } catch (replayErr) {
-        console.warn("replay call failed:", replayErr);
-      }
-
-      // Fallback: scan receipt logs for a UTF-8 string payload
-      if (!revealed && receipt?.logs?.length) {
-        for (const log of receipt.logs) {
-          const candidate = hexToUtf8(log.data ?? "");
-          if (candidate && candidate.length > 4) {
-            revealed = candidate;
-            break;
-          }
-        }
-      }
-
-      if (!revealed) throw new Error("No result returned");
-
-      setFortune(revealed);
+      setFortune("Fortune generated onchain ↓");
       setPhase("revealed");
     } catch (err: any) {
       console.error(err);
-      setError("Something went wrong. Try again.");
+      if (err?.code === 4001 || /user rejected|denied/i.test(err?.message ?? "")) {
+        setError("Transaction cancelled");
+      } else {
+        setError("Transaction failed. Try again.");
+      }
       setPhase(activeWallet ? "connected" : "idle");
     } finally {
       if (loadingTimerRef.current) {
@@ -228,6 +217,7 @@ function Index() {
 
   const reset = () => {
     setFortune(null);
+    setTxHash(null);
     setError(null);
     setHint(null);
     setPhase("idle");
