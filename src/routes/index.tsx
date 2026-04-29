@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { ethers } from "ethers";
 import cookieImg from "@/assets/cookie.png";
 import cookieOpenImg from "@/assets/cookie-open.png";
 
@@ -126,7 +127,11 @@ function Index() {
     setError(null);
     setFortune(null);
     const eth = getEthereum();
-    if (!eth?.request || !wallet) {
+    if (!eth) {
+      alert("No wallet");
+      return;
+    }
+    if (!wallet) {
       setError("Wallet not connected.");
       return;
     }
@@ -142,30 +147,21 @@ function Index() {
         await ensureGenLayerNetwork(eth);
       }
 
-      const tx = {
-        from: wallet,
-        to: COOKIE_CONTRACT,
-        value: VALUE_WEI_HEX,
-        data: OPEN_COOKIE_SELECTOR,
-      };
-      console.log(tx);
+      const provider = new ethers.BrowserProvider(eth);
+      const signer = await provider.getSigner();
+      const abi = ["function open_cookie() payable returns (string)"];
+      const contract = new ethers.Contract(COOKIE_CONTRACT, abi, signer);
 
-      const txHash: string = await eth.request({
-        method: "eth_sendTransaction",
-        params: [tx],
+      const tx = await contract.open_cookie({
+        value: ethers.parseEther("0.1"),
       });
-      console.log("tx hash:", txHash);
-
-      const receipt = await waitForReceipt(eth, txHash);
-      console.log("receipt:", receipt);
-
-      if (receipt.status && receipt.status !== "0x1") {
-        throw new Error("Transaction failed on-chain");
-      }
+      console.log("TX:", tx.hash);
+      const receipt = await tx.wait();
+      console.log("Confirmed", receipt);
 
       // Try to decode fortune from logs (last log's data)
       let revealed = "";
-      const logs: any[] = receipt.logs ?? [];
+      const logs: any[] = receipt?.logs ?? [];
       for (let i = logs.length - 1; i >= 0; i--) {
         const candidate = hexToUtf8(logs[i].data ?? "");
         if (candidate && candidate.length > 2) {
@@ -174,19 +170,15 @@ function Index() {
         }
       }
 
-      // Fallback: replay as eth_call to read return value
+      // Fallback: static call to read return value
       if (!revealed) {
         try {
-          const ret: string = await eth.request({
-            method: "eth_call",
-            params: [
-              { from: wallet, to: COOKIE_CONTRACT, data: OPEN_COOKIE_SELECTOR, value: VALUE_WEI_HEX },
-              "latest",
-            ],
+          const ret: string = await contract.open_cookie.staticCall({
+            value: ethers.parseEther("0.1"),
           });
-          revealed = hexToUtf8(ret);
+          revealed = ret;
         } catch (e) {
-          console.warn("eth_call fallback failed", e);
+          console.warn("staticCall fallback failed", e);
         }
       }
 
@@ -199,10 +191,10 @@ function Index() {
       setFortune(revealed);
       setPhase("revealed");
     } catch (err: any) {
-      console.error("openCookie failed:", err);
+      console.error(err);
       const code = err?.code;
-      const msg: string = err?.message ?? "";
-      if (code === 4001 || /reject/i.test(msg)) setError("Transaction rejected");
+      const msg: string = err?.shortMessage ?? err?.message ?? "";
+      if (code === 4001 || code === "ACTION_REJECTED" || /reject/i.test(msg)) setError("Transaction rejected");
       else if (code === 4902 || /chain|network/i.test(msg)) setError("Wrong network");
       else if (/insufficient/i.test(msg)) setError("Insufficient funds");
       else setError(msg || "Transaction failed");
