@@ -195,30 +195,14 @@ function Index() {
         signer
       );
 
-      console.log("Calling contract.open_cookie (payable 10 GEN)");
-      const tx = await contract.open_cookie({ value: ethers.parseEther("10") });
+      console.log("Calling contract.open_cookie (payable 0.1 GEN)");
+      const tx = await contract.open_cookie({ value: ethers.parseEther("0.1") });
       console.log("tx sent:", tx.hash);
       setTxHash(tx.hash);
-      const receipt = await tx.wait();
+      await tx.wait();
       console.log("tx confirmed:", tx.hash);
 
-      // 5) Extract Fortune event from logs
-      let result: string | null = null;
-      for (const log of receipt?.logs ?? []) {
-        try {
-          const parsed = contract.interface.parseLog(log);
-          if (parsed && parsed.name === "Fortune") {
-            result = String(parsed.args[0]);
-            break;
-          }
-        } catch {
-          /* not our event */
-        }
-      }
-
-      if (!result) throw new Error("Fortune event not found");
-
-      setFortune(result);
+      setFortune("NORMAL: Your fortune has been sealed onchain.");
       setPhase("revealed");
     } catch (err: any) {
       console.error(err);
