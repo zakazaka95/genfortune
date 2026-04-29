@@ -191,7 +191,7 @@ function Index() {
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         ethers.getAddress(COOKIE_CONTRACT.toLowerCase()),
-        ["function open_cookie() payable returns (string)"],
+        COOKIE_ABI,
         signer
       );
 
@@ -199,10 +199,26 @@ function Index() {
       const tx = await contract.open_cookie({ value: ethers.parseEther("10") });
       console.log("tx sent:", tx.hash);
       setTxHash(tx.hash);
-      await tx.wait();
+      const receipt = await tx.wait();
       console.log("tx confirmed:", tx.hash);
 
-      setFortune("Fortune generated onchain ↓");
+      // 5) Extract Fortune event from logs
+      let result: string | null = null;
+      for (const log of receipt?.logs ?? []) {
+        try {
+          const parsed = contract.interface.parseLog(log);
+          if (parsed && parsed.name === "Fortune") {
+            result = String(parsed.args[0]);
+            break;
+          }
+        } catch {
+          /* not our event */
+        }
+      }
+
+      if (!result) throw new Error("Fortune event not found");
+
+      setFortune(result);
       setPhase("revealed");
     } catch (err: any) {
       console.error(err);
