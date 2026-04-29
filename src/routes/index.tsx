@@ -100,7 +100,6 @@ function Index() {
   const [wallet, setWallet] = useState<string | null>(null);
   const [fortune, setFortune] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [userInput, setUserInput] = useState("");
   const [hint, setHint] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState("Consulting the network…");
   const loadingTimerRef = useRef<number | null>(null);
