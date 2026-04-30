@@ -198,27 +198,39 @@ function RevealingState() {
 /* ─── Dramatic Rarity Cards ─── */
 const RARITY_STYLES: Record<Rarity, {
   bg: string; border: string; color: string;
-  textColor: string; glow: string;
+  textColor: string; cardClass: string; labelGlow: string;
 }> = {
   LEGENDARY: {
-    bg: "#1A1508", border: "#C8922A", color: "#D4A843",
+    bg: "linear-gradient(160deg, #1A1508 0%, #2A1F0A 40%, #1A1508 100%)",
+    border: "#C8922A",
+    color: "#FFD700",
     textColor: "#F5E6C8",
-    glow: "0 0 30px rgba(200,146,42,0.4), 0 0 60px rgba(200,146,42,0.15), inset 0 1px 0 rgba(255,215,0,0.15)",
+    cardClass: "card-legendary",
+    labelGlow: "0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(255,215,0,0.3)",
   },
   UNIQUE: {
-    bg: "#140E1E", border: "#7B5EA7", color: "#9B7FCC",
+    bg: "linear-gradient(160deg, #0E0A18 0%, #1A1230 40%, #0E0A18 100%)",
+    border: "#7B5EA7",
+    color: "#B89FE0",
     textColor: "#E8DDF5",
-    glow: "0 0 30px rgba(123,94,167,0.35), 0 0 60px rgba(123,94,167,0.12), inset 0 1px 0 rgba(155,127,204,0.15)",
+    cardClass: "card-unique",
+    labelGlow: "0 0 15px rgba(155,127,204,0.5), 0 0 30px rgba(155,127,204,0.2)",
   },
   RARE: {
-    bg: "#0C1220", border: "#4A6FA5", color: "#6B8FC5",
+    bg: "linear-gradient(160deg, #080E1A 0%, #0C1830 40%, #080E1A 100%)",
+    border: "#4A6FA5",
+    color: "#7BADE0",
     textColor: "#D0DFEF",
-    glow: "0 0 25px rgba(74,111,165,0.3), 0 0 50px rgba(74,111,165,0.1), inset 0 1px 0 rgba(107,143,197,0.15)",
+    cardClass: "card-rare",
+    labelGlow: "0 0 12px rgba(74,111,165,0.4), 0 0 25px rgba(74,111,165,0.2)",
   },
   NORMAL: {
-    bg: "#FFFFFF", border: "rgba(0,0,0,0.08)", color: "#555555",
+    bg: "#FFFFFF",
+    border: "rgba(0,0,0,0.08)",
+    color: "#555555",
     textColor: "#1A1A1A",
-    glow: "0 8px 40px rgba(0,0,0,0.06)",
+    cardClass: "",
+    labelGlow: "none",
   },
 };
 
@@ -233,18 +245,22 @@ function FortuneCard({
   const isDark = result.rarity !== "NORMAL";
 
   return (
-    <div className="animate-fadeIn w-full max-w-sm flex flex-col items-center" style={{ position: "relative" }}>
+    <div className="animate-fadeIn w-full max-w-sm flex flex-col items-center" style={{ position: "relative", minHeight: 420 }}>
       {/* Full-screen dark overlay for epic tiers */}
       {isDark && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-          background: `radial-gradient(ellipse at center, ${s.bg}ee 0%, ${s.bg} 100%)`,
+          background: result.rarity === "LEGENDARY"
+            ? "radial-gradient(ellipse at center, #1A1508ee 0%, #0A0A04 100%)"
+            : result.rarity === "UNIQUE"
+            ? "radial-gradient(ellipse at center, #140E1Eee 0%, #08060E 100%)"
+            : "radial-gradient(ellipse at center, #0C1220ee 0%, #060A12 100%)",
           animation: "fadeIn 0.6s ease both",
         }} />
       )}
 
       <div
-        className={result.rarity === "LEGENDARY" ? "card-legendary" : result.rarity === "UNIQUE" ? "card-unique" : ""}
+        className={s.cardClass}
         style={{
           position: "relative", zIndex: 1, overflow: "hidden",
           background: s.bg,
@@ -253,45 +269,67 @@ function FortuneCard({
           padding: "48px 40px",
           textAlign: "center",
           width: "100%",
-          boxShadow: s.glow,
+          minHeight: 320,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {/* Star particles for UNIQUE */}
-        {result.rarity === "UNIQUE" && Array.from({ length: 12 }).map((_, i) => (
+        {/* Floating gold particles for LEGENDARY */}
+        {result.rarity === "LEGENDARY" && Array.from({ length: 20 }).map((_, i) => (
           <span key={i} style={{
             position: "absolute",
-            left: `${10 + Math.random() * 80}%`,
-            top: `${10 + Math.random() * 80}%`,
-            width: 2, height: 2, borderRadius: "50%",
-            background: "rgba(155,127,204,0.6)",
-            animation: `twinkle ${1.5 + Math.random() * 2}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 2}s`,
+            left: `${5 + Math.random() * 90}%`,
+            bottom: `${-5 + Math.random() * 20}%`,
+            width: 2 + Math.random() * 3,
+            height: 2 + Math.random() * 3,
+            borderRadius: "50%",
+            background: `rgba(255, 215, 0, ${0.3 + Math.random() * 0.5})`,
+            animation: `particle-float ${3 + Math.random() * 4}s ease-out infinite`,
+            animationDelay: `${Math.random() * 4}s`,
           }} />
         ))}
 
-        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.4, margin: "0 auto 12px" }} />
+        {/* Star field for UNIQUE */}
+        {result.rarity === "UNIQUE" && Array.from({ length: 25 }).map((_, i) => (
+          <span key={i} style={{
+            position: "absolute",
+            left: `${5 + Math.random() * 90}%`,
+            top: `${5 + Math.random() * 90}%`,
+            width: 1.5 + Math.random() * 2,
+            height: 1.5 + Math.random() * 2,
+            borderRadius: "50%",
+            background: `rgba(155,127,204,${0.2 + Math.random() * 0.6})`,
+            animation: `twinkle ${1.5 + Math.random() * 3}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 3}s`,
+          }} />
+        ))}
+
+        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.5, margin: "0 auto 14px" }} />
 
         <p style={{
-          fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 500,
-          letterSpacing: "0.25em", textTransform: "uppercase" as const,
-          color: s.color, marginBottom: 12,
+          fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 600,
+          letterSpacing: "0.3em", textTransform: "uppercase" as const,
+          color: s.color, marginBottom: 14,
+          textShadow: isDark ? s.labelGlow : "none",
         }}>
           {result.rarity}
         </p>
 
-        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.4, margin: "0 auto 24px" }} />
+        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.5, margin: "0 auto 28px" }} />
 
-        <p style={{
+        <p className="fortune-text" style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: 30, fontWeight: 300, fontStyle: "italic",
-          lineHeight: 1.45, color: s.textColor,
+          fontSize: 28, fontWeight: 300, fontStyle: "italic",
+          lineHeight: 1.5, color: s.textColor,
         }}>
-          "{result.message}"
+          &ldquo;{result.message}&rdquo;
         </p>
 
         <p style={{
           fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300,
-          color: isDark ? "rgba(255,255,255,0.3)" : "#C0C0C0", marginTop: 24,
+          color: isDark ? "rgba(255,255,255,0.3)" : "#C0C0C0", marginTop: 28,
         }}>
           Cookie #{result.cookie_number}
         </p>
