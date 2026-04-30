@@ -236,9 +236,27 @@
 }
 
 /* ─── Cookie Animations ─── */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.015) translateY(-4px); }
+}
+
+@keyframes inner-glow-pulse {
+  0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(0.9); }
+  50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes specular-sweep {
+  0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.12; }
+  25% { opacity: 0.25; }
+  50% { transform: translate(-50%, -50%) rotate(180deg); opacity: 0.12; }
+  75% { opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) rotate(360deg); opacity: 0.12; }
+}
+
+@keyframes shadow-breathe {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.12; }
+  50% { transform: translateX(-50%) scaleX(1.05); opacity: 0.08; }
 }
 
 @keyframes crack {
@@ -251,8 +269,79 @@
   100% { transform: rotate(0deg) scale(1); }
 }
 
-.cookie-idle { animation: float 4s ease-in-out infinite; }
-.cookie-cracking { animation: crack 0.5s ease-in-out; }
+.cookie-breathe {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: breathe 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+}
+.cookie-breathe:hover {
+  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.05);
+}
+
+.cookie-inner-glow {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 80px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,220,150,0.5) 0%, rgba(255,200,100,0.15) 50%, transparent 80%);
+  animation: inner-glow-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cookie-specular {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.15) 30deg, transparent 60deg, transparent 180deg, rgba(255,255,255,0.1) 210deg, transparent 240deg);
+  animation: specular-sweep 8s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cookie-shadow {
+  position: absolute;
+  bottom: -16px; left: 50%;
+  transform: translateX(-50%);
+  width: 140px; height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.12) 0%, transparent 70%);
+  animation: shadow-breathe 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+/* Oracle background pattern */
+.oracle-pattern {
+  position: absolute;
+  left: 50%; top: 45%;
+  transform: translate(-50%, -50%);
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.025);
+  pointer-events: none;
+  z-index: 0;
+}
+.oracle-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.018);
+}
+.oracle-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 90px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.012);
+}
+
+.cookie-cracking { animation: crack 0.5s ease-in-out; position: relative; display: flex; align-items: center; justify-content: center; }
 
 /* ─── Revealing State Animations ─── */
 @keyframes cookie-glow-silver {

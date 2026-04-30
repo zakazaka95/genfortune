@@ -93,14 +93,20 @@ function CookieVisual({ phase }: { phase: Phase }) {
   if (phase === "revealing") return null;
 
   return (
-    <div className={phase === "cracking" ? "cookie-cracking" : "cookie-idle"}>
+    <div className={phase === "cracking" ? "cookie-cracking" : "cookie-breathe"}>
+      {/* Specular highlight overlay */}
+      <div className="cookie-specular" />
+      {/* Inner glow pulse */}
+      <div className="cookie-inner-glow" />
       <img
         src={silverCookieImg}
         alt="Fortune cookie"
-        width={220}
-        height={220}
-        style={{ filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.08))" }}
+        width={240}
+        height={240}
+        style={{ position: "relative", zIndex: 1 }}
       />
+      {/* Soft shadow underneath */}
+      <div className="cookie-shadow" />
     </div>
   );
 }
@@ -600,26 +606,23 @@ function FortuneCookieApp() {
     : "";
 
   return (
-    <main style={{ background: "#FAFAF8", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 24px" }}>
+    <main style={{
+      background: "radial-gradient(ellipse at 50% 45%, rgba(245,244,240,1) 0%, #FAFAF8 60%, #F5F4F0 100%)",
+      minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 24px",
+      position: "relative", overflow: "hidden",
+    }}>
       <h1 className="sr-only">Fortune Cookie</h1>
+
+      {/* Faint oracle circle pattern */}
+      {(phase === "idle" || phase === "connected") && (
+        <div className="oracle-pattern" />
+      )}
 
       {/* Cookie visual — hidden during revealing (RevealingState has its own) */}
       {phase !== "revealed" && phase !== "revealing" && (
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
           <CookieVisual phase={phase} />
         </div>
-      )}
-
-      {/* Wallet address */}
-      {wallet && phase !== "idle" && phase !== "revealed" && phase !== "revealing" && (
-        <p style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: 12, fontWeight: 300,
-          color: "#9A9A9A", marginBottom: 16,
-          letterSpacing: "0.04em",
-        }}>
-          {truncatedWallet}
-        </p>
       )}
 
       {/* Keyword input */}
