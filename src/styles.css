@@ -343,29 +343,27 @@
 
 .cookie-cracking { animation: crack 0.5s ease-in-out; position: relative; display: flex; align-items: center; justify-content: center; }
 
-/* ─── Revealing State Animations ─── */
-@keyframes cookie-glow-silver {
-  0%, 100% { filter: drop-shadow(0 0 20px rgba(200,195,185,0.25)); }
-  50% { filter: drop-shadow(0 0 40px rgba(210,205,195,0.4)); }
+/* ─── Revealing State ─── */
+@keyframes bloom-breathe {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.75; transform: translate(-50%, -50%) scale(1.15); }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.15); }
+@keyframes rays-breathe {
+  0%, 100% { opacity: 0.12; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(1.08); }
 }
 
-@keyframes spin-reverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+@keyframes cookie-reveal-glow {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(255,230,180,0.3)) drop-shadow(0 0 50px rgba(255,220,150,0.15)); }
+  50% { filter: drop-shadow(0 0 35px rgba(255,230,180,0.5)) drop-shadow(0 0 70px rgba(255,220,150,0.25)); }
 }
 
-@keyframes cookie-glow {
-  0%, 100% { filter: drop-shadow(0 0 30px rgba(212,146,42,0.3)); }
-  50% { filter: drop-shadow(0 0 50px rgba(212,146,42,0.5)); }
-}
-@keyframes particle-rise {
-  0% { transform: translateY(0) scale(1); opacity: 0.8; }
-  100% { transform: translateY(-80px) scale(0); opacity: 0; }
+@keyframes particle-drift {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  10% { opacity: var(--p-opacity); }
+  90% { opacity: var(--p-opacity); }
+  100% { transform: translate(calc(cos(var(--p-angle)) * 160px), calc(sin(var(--p-angle)) * 160px)) scale(0.3); opacity: 0; }
 }
 
 @keyframes spin-slow {
@@ -373,9 +371,80 @@
   to { transform: rotate(360deg); }
 }
 
-@keyframes pulse-dot {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.oracle-ring-outer {
+  animation: spin-slow 90s linear infinite;
+  opacity: 0.5;
+}
+.oracle-ring-inner {
+  animation: spin-reverse 70s linear infinite;
+  opacity: 0.4;
+}
+
+.revealing-bloom {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,240,200,0.6) 0%,
+    rgba(255,225,170,0.3) 30%,
+    rgba(255,215,150,0.1) 55%,
+    transparent 75%
+  );
+  animation: bloom-breathe 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.revealing-rays {
+  position: absolute;
+  inset: -40px;
+  background: conic-gradient(from 0deg at 50% 50%,
+    transparent 0deg, rgba(255,235,200,0.06) 4deg, transparent 8deg,
+    transparent 24deg, rgba(255,235,200,0.05) 28deg, transparent 32deg,
+    transparent 48deg, rgba(255,235,200,0.07) 52deg, transparent 56deg,
+    transparent 72deg, rgba(255,235,200,0.04) 76deg, transparent 80deg,
+    transparent 96deg, rgba(255,235,200,0.06) 100deg, transparent 104deg,
+    transparent 120deg, rgba(255,235,200,0.05) 124deg, transparent 128deg,
+    transparent 144deg, rgba(255,235,200,0.07) 148deg, transparent 152deg,
+    transparent 168deg, rgba(255,235,200,0.04) 172deg, transparent 176deg,
+    transparent 192deg, rgba(255,235,200,0.06) 196deg, transparent 200deg,
+    transparent 216deg, rgba(255,235,200,0.05) 220deg, transparent 224deg,
+    transparent 240deg, rgba(255,235,200,0.07) 244deg, transparent 248deg,
+    transparent 264deg, rgba(255,235,200,0.04) 268deg, transparent 272deg,
+    transparent 288deg, rgba(255,235,200,0.06) 292deg, transparent 296deg,
+    transparent 312deg, rgba(255,235,200,0.05) 316deg, transparent 320deg,
+    transparent 336deg, rgba(255,235,200,0.06) 340deg, transparent 344deg,
+    transparent 360deg
+  );
+  mask-image: radial-gradient(ellipse at center, transparent 20%, white 35%, white 65%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 20%, white 35%, white 65%, transparent 80%);
+  animation: rays-breathe 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.revealing-cookie {
+  animation: cookie-reveal-glow 2.5s ease-in-out infinite;
+}
+
+.revealing-particle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: var(--p-size);
+  height: var(--p-size);
+  border-radius: 50%;
+  background: rgba(220,200,170,0.6);
+  animation: particle-drift var(--p-duration) ease-out infinite;
+  animation-delay: var(--p-delay);
+  pointer-events: none;
+  z-index: 3;
 }
 
 /* ─── Rarity Card Effects ─── */

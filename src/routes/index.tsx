@@ -112,160 +112,91 @@ function CookieVisual({ phase }: { phase: Phase }) {
 }
 
 /* ─── Immersive Revealing State ─── */
-const ORACLE_PHRASES = [
-  "The oracle is consulting the validators…",
-  "AI minds are reaching consensus…",
-  "Your fortune is taking shape…",
-  "The chain is finalizing your destiny…",
-];
+const PARTICLES = Array.from({ length: 30 }).map((_, i) => ({
+  angle: (i / 30) * Math.PI * 2,
+  speed: 0.3 + Math.random() * 0.5,
+  size: 1.2 + Math.random() * 1.8,
+  delay: Math.random() * 6,
+  duration: 5 + Math.random() * 4,
+  opacity: 0.15 + Math.random() * 0.35,
+}));
 
 function RevealingState() {
-  const [phraseIdx, setPhraseIdx] = useState(0);
-  const [fadeClass, setFadeClass] = useState("opacity-100");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFadeClass("opacity-0");
-      setTimeout(() => {
-        setPhraseIdx(i => (i + 1) % ORACLE_PHRASES.length);
-        setFadeClass("opacity-100");
-      }, 400);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* Subtle vignette overlay */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: "radial-gradient(ellipse at center, transparent 30%, rgba(200,200,195,0.15) 100%)",
-      }} />
+      {/* Cookie + bloom container */}
+      <div style={{ position: "relative", width: 380, height: 380, marginBottom: 32 }}>
 
-      {/* Cookie + light rays container */}
-      <div style={{ position: "relative", width: 320, height: 320, marginBottom: 24 }}>
-        {/* Outer ethereal ring — slow rotation */}
-        <svg viewBox="0 0 320 320" style={{
+        {/* Outer oracle ring — very slow rotation */}
+        <svg viewBox="0 0 380 380" className="oracle-ring-outer" style={{
           position: "absolute", inset: 0, width: "100%", height: "100%",
-          animation: "spin-slow 25s linear infinite", opacity: 0.3,
         }}>
-          <circle cx="160" cy="160" r="150" fill="none" stroke="rgba(180,175,165,0.3)" strokeWidth="0.5" />
-          <circle cx="160" cy="160" r="140" fill="none" stroke="rgba(180,175,165,0.2)" strokeWidth="0.3" strokeDasharray="6 8" />
-          {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
-            <line key={deg} x1="160" y1="15" x2="160" y2="35" stroke="rgba(180,175,165,0.25)" strokeWidth="0.8" strokeLinecap="round"
-              transform={`rotate(${deg} 160 160)`} />
+          <circle cx="190" cy="190" r="180" fill="none" stroke="rgba(180,175,165,0.12)" strokeWidth="0.5" />
+          <circle cx="190" cy="190" r="165" fill="none" stroke="rgba(180,175,165,0.08)" strokeWidth="0.3" strokeDasharray="4 8" />
+          {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
+            <line key={deg} x1="190" y1="12" x2="190" y2="24" stroke="rgba(180,175,165,0.1)" strokeWidth="0.6" strokeLinecap="round"
+              transform={`rotate(${deg} 190 190)`} />
           ))}
         </svg>
 
-        {/* Inner light ring — counter rotation */}
-        <svg viewBox="0 0 320 320" style={{
+        {/* Inner oracle ring — counter rotation */}
+        <svg viewBox="0 0 380 380" className="oracle-ring-inner" style={{
           position: "absolute", inset: 0, width: "100%", height: "100%",
-          animation: "spin-reverse 18s linear infinite", opacity: 0.2,
         }}>
-          <circle cx="160" cy="160" r="120" fill="none" stroke="rgba(200,195,185,0.3)" strokeWidth="0.4" strokeDasharray="3 5" />
+          <circle cx="190" cy="190" r="140" fill="none" stroke="rgba(190,185,175,0.08)" strokeWidth="0.4" strokeDasharray="2 6" />
+          <circle cx="190" cy="190" r="120" fill="none" stroke="rgba(190,185,175,0.05)" strokeWidth="0.3" />
         </svg>
 
-        {/* Radial light rays */}
-        <div className="light-rays" style={{
-          position: "absolute", inset: 0,
-          background: `conic-gradient(from 0deg at 50% 50%,
-            transparent 0deg, rgba(220,215,200,0.08) 5deg, transparent 10deg,
-            transparent 30deg, rgba(220,215,200,0.06) 35deg, transparent 40deg,
-            transparent 60deg, rgba(220,215,200,0.1) 65deg, transparent 70deg,
-            transparent 90deg, rgba(220,215,200,0.05) 95deg, transparent 100deg,
-            transparent 120deg, rgba(220,215,200,0.08) 125deg, transparent 130deg,
-            transparent 150deg, rgba(220,215,200,0.07) 155deg, transparent 160deg,
-            transparent 180deg, rgba(220,215,200,0.09) 185deg, transparent 190deg,
-            transparent 210deg, rgba(220,215,200,0.06) 215deg, transparent 220deg,
-            transparent 240deg, rgba(220,215,200,0.08) 245deg, transparent 250deg,
-            transparent 270deg, rgba(220,215,200,0.05) 275deg, transparent 280deg,
-            transparent 300deg, rgba(220,215,200,0.07) 305deg, transparent 310deg,
-            transparent 330deg, rgba(220,215,200,0.06) 335deg, transparent 340deg,
-            transparent 360deg
-          )`,
-          animation: "spin-slow 30s linear infinite",
-          maskImage: "radial-gradient(ellipse at center, transparent 25%, white 40%, white 70%, transparent 85%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, transparent 25%, white 40%, white 70%, transparent 85%)",
-        }} />
+        {/* Bloom — strong warm glow from center */}
+        <div className="revealing-bloom" />
 
-        {/* Central glow orb */}
-        <div style={{
-          position: "absolute",
-          left: "50%", top: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 100, height: 100, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,252,240,0.5) 0%, rgba(240,235,220,0.2) 40%, transparent 70%)",
-          animation: "pulse-glow 3s ease-in-out infinite",
-        }} />
+        {/* Soft light rays expanding outward */}
+        <div className="revealing-rays" />
 
-        {/* Floating sparkle particles */}
-        {Array.from({ length: 12 }).map((_, i) => (
-          <span key={i} style={{
-            position: "absolute",
-            left: `${20 + Math.random() * 60}%`,
-            top: `${20 + Math.random() * 60}%`,
-            width: 2 + Math.random() * 2,
-            height: 2 + Math.random() * 2,
-            borderRadius: "50%",
-            background: `rgba(200, 195, 180, ${0.3 + Math.random() * 0.4})`,
-            animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 3}s`,
-          }} />
+        {/* Drifting particles */}
+        {PARTICLES.map((p, i) => (
+          <span key={i} className="revealing-particle" style={{
+            '--p-angle': `${p.angle}rad`,
+            '--p-delay': `${p.delay}s`,
+            '--p-duration': `${p.duration}s`,
+            '--p-size': `${p.size}px`,
+            '--p-opacity': p.opacity,
+          } as React.CSSProperties} />
         ))}
 
-        {/* The cookie itself */}
+        {/* The cookie */}
         <img
           src={silverCookieImg}
-          alt="Cookie cracking open"
-          width={200}
-          height={200}
+          alt="Cookie opening"
+          width={210}
+          height={210}
           style={{
             position: "absolute",
             left: "50%", top: "50%",
             transform: "translate(-50%, -50%)",
-            filter: "drop-shadow(0 0 30px rgba(200,195,185,0.3))",
-            animation: "cookie-glow-silver 3s ease-in-out infinite",
+            zIndex: 2,
           }}
+          className="revealing-cookie"
         />
       </div>
 
-      {/* Clock symbol */}
-      <div style={{ marginBottom: 20 }}>
-        <svg width="36" height="36" viewBox="0 0 36 36" style={{ animation: "spin-slow 12s linear infinite", opacity: 0.4 }}>
-          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(160,155,145,0.4)" strokeWidth="0.8" />
-          <circle cx="18" cy="18" r="10" fill="none" stroke="rgba(160,155,145,0.25)" strokeWidth="0.4" strokeDasharray="3 3" />
-          {[0, 60, 120, 180, 240, 300].map(deg => (
-            <line key={deg} x1="18" y1="4" x2="18" y2="7" stroke="rgba(160,155,145,0.35)" strokeWidth="0.8" strokeLinecap="round"
-              transform={`rotate(${deg} 18 18)`} />
-          ))}
-          <circle cx="18" cy="18" r="1.5" fill="rgba(160,155,145,0.4)" style={{ animation: "pulse-dot 2s ease-in-out infinite" }} />
-        </svg>
-      </div>
-
-      {/* GENLAYER label */}
+      {/* Oracle text */}
       <p style={{
-        fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 400,
-        letterSpacing: "0.35em", textTransform: "uppercase" as const,
-        color: "#B5B0A8", marginBottom: 8,
+        fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 400,
+        letterSpacing: "0.25em", textTransform: "uppercase" as const,
+        color: "#A8A29E", textAlign: "center",
+        lineHeight: 1.6,
       }}>
-        GenLayer
-      </p>
-
-      {/* Cycling oracle text — large serif like reference */}
-      <p className={`transition-opacity duration-400 ${fadeClass}`} style={{
-        fontFamily: "'Cormorant Garamond', Georgia, serif",
-        fontSize: 26, fontWeight: 300, fontStyle: "normal",
-        color: "#9A9590", textAlign: "center",
-        lineHeight: 1.35, maxWidth: 340,
-        letterSpacing: "0.02em",
-      }}>
-        {ORACLE_PHRASES[phraseIdx]}
+        The oracle is consulting the validators…
       </p>
 
       {/* Decorative line */}
-      <div style={{ width: 32, height: 1, background: "rgba(180,175,165,0.3)", margin: "16px auto 10px" }} />
+      <div style={{ width: 24, height: 1, background: "rgba(180,175,165,0.25)", margin: "16px auto 12px" }} />
 
-      <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 400, color: "#C0BBB3", letterSpacing: "0.15em", textTransform: "uppercase" as const }}>
+      <p style={{
+        fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 400,
+        color: "#C5C0B8", letterSpacing: "0.2em", textTransform: "uppercase" as const,
+      }}>
         30–60 seconds
       </p>
     </div>
