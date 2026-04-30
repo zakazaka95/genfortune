@@ -573,7 +573,7 @@ function FortuneCookieApp() {
       {/* Actions */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 320 }}>
         {phase === "idle" && (
-          <button onClick={connectWallet} className="btn-primary animate-fadeIn">
+          <button onClick={connectWallet} className="btn-pill animate-fadeIn">
             Connect Wallet
           </button>
         )}
