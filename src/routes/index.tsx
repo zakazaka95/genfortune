@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { createClient } from "genlayer-js";
-import { testnetAsimov } from "genlayer-js/chains";
+import { studionet } from "genlayer-js/chains";
+import { TransactionStatus } from "genlayer-js/types";
 
 export const Route = createFileRoute("/")({
   component: FortuneCookieApp,
@@ -228,14 +229,14 @@ function FortuneCookieApp() {
         return;
       }
 
-      // Create GenLayer client with MetaMask account
+      // Create GenLayer client with MetaMask account — studionet is where the contract lives
       const client = createClient({
-        chain: testnetAsimov,
+        chain: studionet,
         account: address as `0x${string}`,
       });
 
       console.log("genlayer-js version: 1.1.7");
-      console.log("Chain:", JSON.stringify(testnetAsimov.name));
+      console.log("Chain:", JSON.stringify(studionet.name));
       console.log("Calling writeContract with keyword:", userKeyword);
 
       // Submit via genlayer-js — routes through consensus main contract
@@ -252,6 +253,8 @@ function FortuneCookieApp() {
       // Wait for consensus to finalize
       const receipt: any = await client.waitForTransactionReceipt({
         hash: txHash,
+        status: TransactionStatus.FINALIZED,
+        retries: 60,
       });
 
       console.log("Full receipt:", JSON.stringify(receipt, null, 2));
