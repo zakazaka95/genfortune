@@ -274,8 +274,6 @@
   0%, 100% { filter: drop-shadow(0 0 30px rgba(212,146,42,0.3)); }
   50% { filter: drop-shadow(0 0 50px rgba(212,146,42,0.5)); }
 }
-}
-
 @keyframes particle-rise {
   0% { transform: translateY(0) scale(1); opacity: 0.8; }
   100% { transform: translateY(-80px) scale(0); opacity: 0; }
