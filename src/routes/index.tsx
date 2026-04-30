@@ -250,9 +250,8 @@ function FortuneCookieApp() {
       setPhase("revealing");
 
       // Wait for consensus to finalize
-      const receipt = await client.waitForTransactionReceipt({
+      const receipt: any = await client.waitForTransactionReceipt({
         hash: txHash,
-        status: "ACCEPTED",
       });
 
       console.log("Full receipt:", JSON.stringify(receipt, null, 2));
@@ -277,8 +276,8 @@ function FortuneCookieApp() {
 
       // Also try top-level paths
       if (!fortuneData) {
-        const topLevel = receipt?.consensus_data?.leader_receipt?.result?.calldata
-          ?? receipt?.result?.consensus_data?.leader_receipt?.result?.calldata;
+        const topLevel = (receipt as any)?.consensus_data?.leader_receipt?.result?.calldata
+          ?? (receipt as any)?.result?.consensus_data?.leader_receipt?.result?.calldata;
         if (topLevel?.rarity && topLevel?.message) {
           fortuneData = topLevel;
         }
