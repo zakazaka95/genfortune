@@ -257,7 +257,7 @@ function FortuneCookieApp() {
       const client = createClient({ chain: customChain as any });
 
       const txHash = await client.writeContract({
-        account: addr,
+        account: addr as any,
         address: CONTRACT_ADDRESS,
         functionName: "open_cookie",
         args: [keyword || ""],
