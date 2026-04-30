@@ -293,21 +293,22 @@ function FortuneCookieApp() {
 
       console.log("Full receipt:", JSON.stringify(receipt, null, 2));
 
-      try {
-        // The result is in consensus_data.leader_receipt[0].result.payload.readable
-        // It's a JSON string that needs parsing — strip any formatting issues first
-        const leaderReceipt = receipt?.consensus_data?.leader_receipt?.[0];
-        const readable = leaderReceipt?.result?.payload?.readable;
+      // Fix missing commas in GenLayer's malformed JSON readable strings
+      const parseReadable = (raw: string) => {
+        const fixed = raw
+          .replace(/(\d)"(?=[a-zA-Z])/g, '$1,"')     // number followed by key
+          .replace(/"(\s*)"(?=[a-zA-Z])/g, '","')     // string end followed by key
+          .replace(/}(\s*)"(?=[a-zA-Z])/g, '},"');    // object end followed by key
+        console.log("Fixed:", fixed);
+        return JSON.parse(fixed);
+      };
 
-        if (readable) {
-          // The readable string has missing commas between keys — fix it
-          const fixed = readable
-            .replace(/"\s*"(?=[a-z])/g, '","')
-            .replace(/}\s*"/g, '},"');
+      const leaderReceipt = receipt?.consensus_data?.leader_receipt?.[0];
+      const readable = leaderReceipt?.result?.payload?.readable;
 
-          console.log("Fixed readable:", fixed);
-          const parsed = JSON.parse(fixed);
-
+      if (readable) {
+        try {
+          const parsed = parseReadable(readable);
           if (parsed?.rarity && parsed?.message) {
             setFortune({
               rarity: parsed.rarity as Rarity,
@@ -318,15 +319,17 @@ function FortuneCookieApp() {
             setPhase("revealed");
             return;
           }
+        } catch (e) {
+          console.error("Parse failed even after fix:", e);
+          console.log("Raw readable was:", readable);
         }
+      }
 
-        // Fallback: try eq_outputs
-        const eqOutput = leaderReceipt?.eq_outputs?.["0"]?.payload?.readable;
-        if (eqOutput) {
-          const fixed2 = eqOutput
-            .replace(/"\s*"(?=[a-z])/g, '","')
-            .replace(/}\s*"/g, '},"');
-          const parsed2 = JSON.parse(fixed2);
+      // Fallback: try eq_outputs
+      const eqOutput = leaderReceipt?.eq_outputs?.["0"]?.payload?.readable;
+      if (eqOutput) {
+        try {
+          const parsed2 = parseReadable(eqOutput);
           if (parsed2?.rarity && parsed2?.message) {
             setFortune({
               rarity: parsed2.rarity as Rarity,
@@ -337,9 +340,10 @@ function FortuneCookieApp() {
             setPhase("revealed");
             return;
           }
+        } catch (e) {
+          console.error("eq_outputs parse failed:", e);
+          console.log("Raw eq_output was:", eqOutput);
         }
-      } catch (e) {
-        console.error("Parse error:", e);
       }
 
       setError("Fortune confirmed onchain but could not display. Check explorer for your result.");
