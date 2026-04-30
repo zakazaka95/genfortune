@@ -473,6 +473,14 @@ function FortuneCookieApp() {
 
       {(phase === "idle" || phase === "connected") && <div className="oracle-pattern" />}
 
+      {/* Wallet info — top right */}
+      {wallet && phase === "connected" && (
+        <div style={{ position: "absolute", top: 20, right: 24, fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 300, color: "#C0BBB3", letterSpacing: "0.05em", textAlign: "right", zIndex: 10 }}>
+          <span>{wallet.slice(0, 6)}…{wallet.slice(-4)}</span>
+          <span style={{ marginLeft: 8 }}>{(Number(balance) / 1e18).toFixed(2)} GEN</span>
+        </div>
+      )}
+
       {phase !== "revealed" && phase !== "revealing" && (
         <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
           <CookieVisual phase={phase} />
