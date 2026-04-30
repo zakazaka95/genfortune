@@ -157,44 +157,47 @@ function FortuneCookieApp() {
       setError("Please install MetaMask to continue.");
       return;
     }
-    try {
-      const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
-      const addr = accounts?.[0];
-      if (!addr) {
-        setError("No account found.");
-        return;
-      }
-      setWallet(addr);
 
-      // Switch network
-      try {
-        await eth.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: CHAIN_HEX }],
-        });
-      } catch (switchError: any) {
-        if (switchError.code === 4902) {
+    // 1. Request accounts — opens wallet popup
+    let accounts: string[];
+    try {
+      accounts = await eth.request({ method: "eth_requestAccounts" });
+    } catch {
+      setError("Wallet connection rejected.");
+      return;
+    }
+    const addr = accounts?.[0];
+    if (!addr) {
+      setError("No account found.");
+      return;
+    }
+    setWallet(addr);
+
+    // 2. Only THEN switch network
+    try {
+      await eth.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: CHAIN_HEX }],
+      });
+    } catch (switchError: any) {
+      if (switchError.code === 4902) {
+        try {
           await eth.request({
             method: "wallet_addEthereumChain",
             params: [GENLAYER_CHAIN_PARAMS],
           });
-        } else if (switchError.code === 4001) {
-          setError("Could not switch to GenLayer network. Please switch manually.");
-          return;
-        } else {
-          setError("Could not switch to GenLayer network. Please switch manually.");
+        } catch {
+          setError("Could not add GenLayer network. Please add it manually in your wallet.");
           return;
         }
-      }
-
-      setPhase("connected");
-    } catch (err: any) {
-      if (err?.code === 4001) {
-        setError("Connection rejected.");
       } else {
-        setError(err?.message ?? "Could not connect wallet.");
+        setError("Could not switch to GenLayer network. Please switch manually.");
+        return;
       }
     }
+
+    // 3. Only after network confirmed — update state
+    setPhase("connected");
   }, []);
 
   const openCookie = useCallback(async () => {
@@ -208,12 +211,18 @@ function FortuneCookieApp() {
     }
 
     try {
-      // Ensure connected
-      const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
+      // 1. Ensure wallet connected
+      let accounts: string[];
+      try {
+        accounts = await eth.request({ method: "eth_requestAccounts" });
+      } catch {
+        setError("Wallet connection rejected.");
+        return;
+      }
       const addr = accounts?.[0];
       if (addr) setWallet(addr);
 
-      // Ensure network
+      // 2. Ensure correct network
       try {
         await eth.request({
           method: "wallet_switchEthereumChain",
@@ -221,10 +230,15 @@ function FortuneCookieApp() {
         });
       } catch (switchError: any) {
         if (switchError.code === 4902) {
-          await eth.request({
-            method: "wallet_addEthereumChain",
-            params: [GENLAYER_CHAIN_PARAMS],
-          });
+          try {
+            await eth.request({
+              method: "wallet_addEthereumChain",
+              params: [GENLAYER_CHAIN_PARAMS],
+            });
+          } catch {
+            setError("Could not add GenLayer network. Please add it manually in your wallet.");
+            return;
+          }
         } else {
           setError("Could not switch to GenLayer network. Please switch manually.");
           return;
