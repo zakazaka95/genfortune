@@ -24,14 +24,14 @@ interface FortuneResult {
 }
 
 const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
-const CHAIN_HEX = "0xF22F"; // 61999
+const CHAIN_HEX = "0x107d"; // 4221
 
 const GENLAYER_CHAIN_PARAMS = {
   chainId: CHAIN_HEX,
-  chainName: "GenLayer Studio",
+  chainName: "GenLayer Testnets",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://studio.genlayer.com/api"],
-  blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
+  rpcUrls: ["https://zksync-os-testnet-genlayer.zksync.dev"],
+  blockExplorerUrls: ["https://zksync-os-testnet-genlayer.explorer.zksync.dev"],
 };
 
 function getEthereum(): any {
@@ -252,18 +252,17 @@ function FortuneCookieApp() {
       const { createClient } = await import("genlayer-js");
       const { testnetBradbury } = await import("genlayer-js/chains");
 
-      // Create client with GenLayer Studio chain config
       const customChain = {
         ...testnetBradbury,
-        id: 61999,
-        name: "GenLayer Studio",
+        id: 4221,
+        name: "GenLayer Testnets",
         rpcUrls: {
-          default: { http: ["https://studio.genlayer.com/api"] },
+          default: { http: ["https://zksync-os-testnet-genlayer.zksync.dev"] },
         },
         blockExplorers: {
           default: {
             name: "GenLayer Explorer",
-            url: "https://explorer-studio.genlayer.com",
+            url: "https://zksync-os-testnet-genlayer.explorer.zksync.dev",
           },
         },
       };
