@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "GenCookie" },
+      { name: "description", content: "A premium web app that delivers personalized fortunes via a blockchain-connected experience." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "GenCookie" },
+      { property: "og:description", content: "A premium web app that delivers personalized fortunes via a blockchain-connected experience." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "GenCookie" },
+      { name: "twitter:description", content: "A premium web app that delivers personalized fortunes via a blockchain-connected experience." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d0375f74-875a-4050-8a9f-4c59b7129e40/id-preview-d51a1e23--82c02dea-f1f4-4b51-ad76-639eef30a1e3.lovable.app-1777580422520.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d0375f74-875a-4050-8a9f-4c59b7129e40/id-preview-d51a1e23--82c02dea-f1f4-4b51-ad76-639eef30a1e3.lovable.app-1777580422520.png" },
     ],
     links: [
       {
