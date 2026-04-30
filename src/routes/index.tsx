@@ -267,32 +267,37 @@ function FortuneCookieApp() {
       // Poll Explorer REST API for the actual fortune result
       let fortuneResult: FortuneResult | null = null;
       let resultAttempts = 0;
-      while (!fortuneResult && resultAttempts < 20) {
-        await new Promise((r) => window.setTimeout(r, 3000));
+      while (!fortuneResult && resultAttempts < 25) {
+        await new Promise((r) => window.setTimeout(r, 4000));
         try {
           const response = await fetch(
-            `https://explorer-studio.genlayer.com/api/v1/transactions/${txHash}`,
+            `https://explorer-studio.genlayer.com/api/transactions/${txHash}`,
             { headers: { Accept: "application/json" } },
           );
           const data = await response.json();
-          console.log("Explorer response:", JSON.stringify(data, null, 2));
+          console.log("Raw response:", JSON.stringify(data, null, 2));
 
-          const result =
-            data?.consensus_data?.leader_receipt?.result?.calldata ||
-            data?.data?.consensus_data?.leader_receipt?.result?.calldata ||
-            data?.result?.calldata ||
-            data?.calldata;
+          const paths = [
+            data?.consensus_data?.leader_receipt?.result?.calldata,
+            data?.data?.consensus_data?.leader_receipt?.result?.calldata,
+            data?.transaction?.consensus_data?.leader_receipt?.result?.calldata,
+            data?.result?.consensus_data?.leader_receipt?.result?.calldata,
+            data?.leader_receipt?.result?.calldata,
+          ];
 
-          if (result?.rarity && result?.message) {
-            fortuneResult = {
-              rarity: (result.rarity || "NORMAL") as Rarity,
-              message: result.message,
-              cookie_number: result.cookie_number || 1,
-              txHash,
-            };
+          for (const candidate of paths) {
+            if (candidate?.rarity && candidate?.message) {
+              fortuneResult = {
+                rarity: candidate.rarity as Rarity,
+                message: candidate.message,
+                cookie_number: candidate.cookie_number ?? 1,
+                txHash,
+              };
+              break;
+            }
           }
         } catch (e) {
-          console.log("Attempt", resultAttempts, "failed:", e);
+          console.log("Poll attempt", resultAttempts, ":", e);
         }
         resultAttempts++;
       }
@@ -387,7 +392,7 @@ function FortuneCookieApp() {
               <span className="h-1.5 w-1.5 rounded-full bg-[#999] animate-pulse" style={{ animationDelay: "0.2s" }} />
               <span className="h-1.5 w-1.5 rounded-full bg-[#999] animate-pulse" style={{ animationDelay: "0.4s" }} />
             </span>
-            <span className="text-sm text-[#999]">The oracle is thinking…</span>
+            <span className="text-sm text-[#999]">The oracle is consulting the validators… (30–60s)</span>
           </div>
         )}
       </div>
