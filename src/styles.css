@@ -1,22 +1,9 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500&display=swap');
 
 @custom-variant dark (&:is(.dark *));
-
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -63,24 +50,24 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --background: oklch(0.98 0.002 90);
+  --foreground: oklch(0.15 0.01 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.15 0.01 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
+  --popover-foreground: oklch(0.15 0.01 0);
+  --primary: oklch(0.15 0.01 0);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
+  --muted-foreground: oklch(0.65 0.01 0);
   --accent: oklch(0.968 0.007 247.896);
   --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
+  --border: oklch(0 0 0 / 6%);
+  --input: oklch(0 0 0 / 12%);
   --ring: oklch(0.704 0.04 256.788);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -138,57 +125,98 @@
   }
 
   html, body {
-    background-color: #ffffff;
-    color: #0a0a0a;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+    background-color: #FAFAF8;
+    color: #1A1A1A;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 }
 
 @layer utilities {
-  .btn-cookie {
-    position: relative;
-    background: #0a0a0a;
-    color: #ffffff;
-    border-radius: 9999px;
-    padding: 14px 32px;
-    font-size: 15px;
+  .btn-primary {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: 56px;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
     font-weight: 500;
-    letter-spacing: -0.01em;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.07);
+    letter-spacing: 0.08em;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.25s ease;
+                opacity 0.25s ease;
     cursor: pointer;
     border: none;
   }
-  .btn-cookie:hover {
+  .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 48px rgba(0,0,0,0.12);
+    opacity: 0.9;
   }
-  .btn-cookie:active {
+  .btn-primary:active {
     transform: translateY(0) scale(0.98);
     transition-duration: 0.08s;
   }
 
-  .animate-shake {
-    animation: shake 0.4s ease-in-out infinite;
+  .btn-outline {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: 56px;
+    background: transparent;
+    color: #1A1A1A;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s ease;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0,0,0,0.25);
+  }
+  .btn-outline:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.08s;
   }
 
   .animate-fadeIn {
-    animation: fadeIn 0.5s ease both;
+    animation: fadeIn 0.6s ease both;
   }
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0) rotate(0); }
-  20% { transform: translateX(-3px) rotate(-2deg); }
-  40% { transform: translateX(3px) rotate(2deg); }
-  60% { transform: translateX(-2px) rotate(-1deg); }
-  80% { transform: translateX(2px) rotate(1deg); }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
+
+@keyframes crack {
+  0% { transform: rotate(0deg) scale(1); }
+  15% { transform: rotate(-4deg) scale(1.04); }
+  30% { transform: rotate(4deg) scale(1.06); }
+  45% { transform: rotate(-3deg) scale(1.04); }
+  60% { transform: rotate(3deg) scale(1.02); }
+  75% { transform: rotate(-1deg) scale(1.01); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.cookie-idle { animation: float 4s ease-in-out infinite; }
+.cookie-cracking { animation: crack 0.5s ease-in-out; }
+.cookie-revealed { opacity: 0; transform: scale(0.85); transition: all 0.4s ease; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
