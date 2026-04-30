@@ -4,6 +4,9 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 
+// @ts-ignore — patch BigInt serialization for genlayer-js internals
+BigInt.prototype.toJSON = function () { return this.toString(); };
+
 export const Route = createFileRoute("/")({
   component: FortuneCookieApp,
   head: () => ({
