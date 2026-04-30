@@ -203,27 +203,12 @@ function FortuneCookieApp() {
     }
     setWallet(addr);
 
-    // 2. Only THEN switch network
+    // 2. Switch to Studio network
     try {
-      await eth.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: CHAIN_HEX }],
-      });
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        try {
-          await eth.request({
-            method: "wallet_addEthereumChain",
-            params: [GENLAYER_CHAIN_PARAMS],
-          });
-        } catch {
-          setError("Could not add GenLayer network. Please add it manually in your wallet.");
-          return;
-        }
-      } else {
-        setError("Could not switch to GenLayer network. Please switch manually.");
-        return;
-      }
+      await ensureStudioNetwork();
+    } catch {
+      setError("Could not switch to GenLayer Studio network. Please switch manually.");
+      return;
     }
 
     // 3. Only after network confirmed — update state
