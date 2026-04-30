@@ -293,6 +293,12 @@
   z-index: 2;
 }
 
+.cookie-inner-glow-active {
+  width: 55px; height: 100px;
+  background: radial-gradient(ellipse, rgba(255,220,150,0.45) 0%, rgba(255,200,100,0.15) 50%, transparent 80%);
+  transition: width 0.5s ease, height 0.5s ease, background 0.5s ease;
+}
+
 .cookie-specular {
   position: absolute;
   left: 50%; top: 50%;
