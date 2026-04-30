@@ -426,7 +426,7 @@ function FortuneCookieApp() {
       )}
 
       {/* Error */}
-      {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
+      {error && <pre style={{ color: "red", fontSize: "13px", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{error}</pre>}
     </main>
   );
 }
