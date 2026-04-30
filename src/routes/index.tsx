@@ -264,53 +264,35 @@ function FortuneCookieApp() {
         return;
       }
 
-      // Debug: log the full API response
-      try {
-        const debugResp = await fetch("https://studio.genlayer.com/api", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            method: "gen_getTransactionByHash",
-            params: [txHash],
-            id: 1,
-          }),
-        });
-        const debugData = await debugResp.json();
-        console.log("FULL RESPONSE:", JSON.stringify(debugData, null, 2));
-      } catch (e) {
-        console.error("Debug fetch failed:", e);
-      }
-
-      // Poll gen_getTransactionByHash for the actual fortune result
+      // Poll Explorer REST API for the actual fortune result
       let fortuneResult: FortuneResult | null = null;
       let resultAttempts = 0;
       while (!fortuneResult && resultAttempts < 20) {
         await new Promise((r) => window.setTimeout(r, 3000));
         try {
-          const response = await fetch("https://studio.genlayer.com/api", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              method: "gen_getTransactionByHash",
-              params: [txHash],
-              id: 1,
-            }),
-          });
+          const response = await fetch(
+            `https://explorer-studio.genlayer.com/api/v1/transactions/${txHash}`,
+            { headers: { Accept: "application/json" } },
+          );
           const data = await response.json();
-          const consensusData = data?.result?.consensus_data;
-          const leaderResult = consensusData?.leader_receipt?.result?.calldata;
-          if (leaderResult) {
+          console.log("Explorer response:", JSON.stringify(data, null, 2));
+
+          const result =
+            data?.consensus_data?.leader_receipt?.result?.calldata ||
+            data?.data?.consensus_data?.leader_receipt?.result?.calldata ||
+            data?.result?.calldata ||
+            data?.calldata;
+
+          if (result?.rarity && result?.message) {
             fortuneResult = {
-              rarity: (leaderResult.rarity || "NORMAL") as Rarity,
-              message: leaderResult.message || "The oracle speaks in silence.",
-              cookie_number: leaderResult.cookie_number || 1,
+              rarity: (result.rarity || "NORMAL") as Rarity,
+              message: result.message,
+              cookie_number: result.cookie_number || 1,
               txHash,
             };
           }
         } catch (e) {
-          console.error("Result fetch error:", e);
+          console.log("Attempt", resultAttempts, "failed:", e);
         }
         resultAttempts++;
       }
