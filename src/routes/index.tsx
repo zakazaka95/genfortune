@@ -93,14 +93,20 @@ function CookieVisual({ phase }: { phase: Phase }) {
   if (phase === "revealing") return null;
 
   return (
-    <div className={phase === "cracking" ? "cookie-cracking" : "cookie-idle"}>
+    <div className={phase === "cracking" ? "cookie-cracking" : "cookie-breathe"}>
+      {/* Specular highlight overlay */}
+      <div className="cookie-specular" />
+      {/* Inner glow pulse */}
+      <div className="cookie-inner-glow" />
       <img
         src={silverCookieImg}
         alt="Fortune cookie"
-        width={220}
-        height={220}
-        style={{ filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.08))" }}
+        width={240}
+        height={240}
+        style={{ position: "relative", zIndex: 1 }}
       />
+      {/* Soft shadow underneath */}
+      <div className="cookie-shadow" />
     </div>
   );
 }
