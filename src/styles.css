@@ -255,9 +255,25 @@
 .cookie-cracking { animation: crack 0.5s ease-in-out; }
 
 /* ─── Revealing State Animations ─── */
+@keyframes cookie-glow-silver {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(200,195,185,0.25)); }
+  50% { filter: drop-shadow(0 0 40px rgba(210,205,195,0.4)); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
 @keyframes cookie-glow {
   0%, 100% { filter: drop-shadow(0 0 30px rgba(212,146,42,0.3)); }
   50% { filter: drop-shadow(0 0 50px rgba(212,146,42,0.5)); }
+}
 }
 
 @keyframes particle-rise {

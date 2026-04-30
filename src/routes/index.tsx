@@ -3,8 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
-import fortuneCookieImg from "../assets/fortune-cookie.png";
-import fortuneCookieOpenImg from "../assets/fortune-cookie-open.png";
+import silverCookieImg from "../assets/silver-cookie.png";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
 BigInt.prototype.toJSON = function () { return this.toString(); };
@@ -96,11 +95,11 @@ function CookieVisual({ phase }: { phase: Phase }) {
   return (
     <div className={phase === "cracking" ? "cookie-cracking" : "cookie-idle"}>
       <img
-        src={fortuneCookieImg}
+        src={silverCookieImg}
         alt="Fortune cookie"
-        width={240}
-        height={240}
-        style={{ filter: "drop-shadow(0 12px 32px rgba(0,0,0,0.12))" }}
+        width={220}
+        height={220}
+        style={{ filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.08))" }}
       />
     </div>
   );
@@ -131,64 +130,136 @@ function RevealingState() {
 
   return (
     <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* Subtle vignette */}
+      {/* Subtle vignette overlay */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.06) 100%)",
+        background: "radial-gradient(ellipse at center, transparent 30%, rgba(200,200,195,0.15) 100%)",
       }} />
 
-      {/* Cracked cookie with glow + particles */}
-      <div style={{ position: "relative", marginBottom: 32 }}>
+      {/* Cookie + light rays container */}
+      <div style={{ position: "relative", width: 320, height: 320, marginBottom: 24 }}>
+        {/* Outer ethereal ring — slow rotation */}
+        <svg viewBox="0 0 320 320" style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          animation: "spin-slow 25s linear infinite", opacity: 0.3,
+        }}>
+          <circle cx="160" cy="160" r="150" fill="none" stroke="rgba(180,175,165,0.3)" strokeWidth="0.5" />
+          <circle cx="160" cy="160" r="140" fill="none" stroke="rgba(180,175,165,0.2)" strokeWidth="0.3" strokeDasharray="6 8" />
+          {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
+            <line key={deg} x1="160" y1="15" x2="160" y2="35" stroke="rgba(180,175,165,0.25)" strokeWidth="0.8" strokeLinecap="round"
+              transform={`rotate(${deg} 160 160)`} />
+          ))}
+        </svg>
+
+        {/* Inner light ring — counter rotation */}
+        <svg viewBox="0 0 320 320" style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          animation: "spin-reverse 18s linear infinite", opacity: 0.2,
+        }}>
+          <circle cx="160" cy="160" r="120" fill="none" stroke="rgba(200,195,185,0.3)" strokeWidth="0.4" strokeDasharray="3 5" />
+        </svg>
+
+        {/* Radial light rays */}
+        <div className="light-rays" style={{
+          position: "absolute", inset: 0,
+          background: `conic-gradient(from 0deg at 50% 50%,
+            transparent 0deg, rgba(220,215,200,0.08) 5deg, transparent 10deg,
+            transparent 30deg, rgba(220,215,200,0.06) 35deg, transparent 40deg,
+            transparent 60deg, rgba(220,215,200,0.1) 65deg, transparent 70deg,
+            transparent 90deg, rgba(220,215,200,0.05) 95deg, transparent 100deg,
+            transparent 120deg, rgba(220,215,200,0.08) 125deg, transparent 130deg,
+            transparent 150deg, rgba(220,215,200,0.07) 155deg, transparent 160deg,
+            transparent 180deg, rgba(220,215,200,0.09) 185deg, transparent 190deg,
+            transparent 210deg, rgba(220,215,200,0.06) 215deg, transparent 220deg,
+            transparent 240deg, rgba(220,215,200,0.08) 245deg, transparent 250deg,
+            transparent 270deg, rgba(220,215,200,0.05) 275deg, transparent 280deg,
+            transparent 300deg, rgba(220,215,200,0.07) 305deg, transparent 310deg,
+            transparent 330deg, rgba(220,215,200,0.06) 335deg, transparent 340deg,
+            transparent 360deg
+          )`,
+          animation: "spin-slow 30s linear infinite",
+          maskImage: "radial-gradient(ellipse at center, transparent 25%, white 40%, white 70%, transparent 85%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, transparent 25%, white 40%, white 70%, transparent 85%)",
+        }} />
+
+        {/* Central glow orb */}
+        <div style={{
+          position: "absolute",
+          left: "50%", top: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 100, height: 100, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,252,240,0.5) 0%, rgba(240,235,220,0.2) 40%, transparent 70%)",
+          animation: "pulse-glow 3s ease-in-out infinite",
+        }} />
+
+        {/* Floating sparkle particles */}
+        {Array.from({ length: 12 }).map((_, i) => (
+          <span key={i} style={{
+            position: "absolute",
+            left: `${20 + Math.random() * 60}%`,
+            top: `${20 + Math.random() * 60}%`,
+            width: 2 + Math.random() * 2,
+            height: 2 + Math.random() * 2,
+            borderRadius: "50%",
+            background: `rgba(200, 195, 180, ${0.3 + Math.random() * 0.4})`,
+            animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 3}s`,
+          }} />
+        ))}
+
+        {/* The cookie itself */}
         <img
-          src={fortuneCookieOpenImg}
+          src={silverCookieImg}
           alt="Cookie cracking open"
-          width={280}
-          height={280}
+          width={200}
+          height={200}
           style={{
-            filter: "drop-shadow(0 0 40px rgba(212,146,42,0.35))",
-            animation: "cookie-glow 3s ease-in-out infinite",
+            position: "absolute",
+            left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            filter: "drop-shadow(0 0 30px rgba(200,195,185,0.3))",
+            animation: "cookie-glow-silver 3s ease-in-out infinite",
           }}
         />
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span
-            key={i}
-            style={{
-              position: "absolute",
-              left: `${35 + Math.random() * 30}%`,
-              bottom: "40%",
-              width: 3 + Math.random() * 3,
-              height: 3 + Math.random() * 3,
-              borderRadius: "50%",
-              background: `rgba(212, 146, 42, ${0.4 + Math.random() * 0.4})`,
-              animation: `particle-rise ${2 + Math.random() * 2}s ease-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
       </div>
 
-      {/* Mandala spinner */}
-      <div style={{ marginBottom: 24 }}>
-        <svg width="48" height="48" viewBox="0 0 48 48" style={{ animation: "spin-slow 8s linear infinite" }}>
-          <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(212,146,42,0.2)" strokeWidth="1" />
-          <circle cx="24" cy="24" r="14" fill="none" stroke="rgba(212,146,42,0.15)" strokeWidth="0.5" strokeDasharray="4 4" />
+      {/* Clock symbol */}
+      <div style={{ marginBottom: 20 }}>
+        <svg width="36" height="36" viewBox="0 0 36 36" style={{ animation: "spin-slow 12s linear infinite", opacity: 0.4 }}>
+          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(160,155,145,0.4)" strokeWidth="0.8" />
+          <circle cx="18" cy="18" r="10" fill="none" stroke="rgba(160,155,145,0.25)" strokeWidth="0.4" strokeDasharray="3 3" />
           {[0, 60, 120, 180, 240, 300].map(deg => (
-            <line key={deg} x1="24" y1="4" x2="24" y2="10" stroke="rgba(212,146,42,0.3)" strokeWidth="1" strokeLinecap="round"
-              transform={`rotate(${deg} 24 24)`} />
+            <line key={deg} x1="18" y1="4" x2="18" y2="7" stroke="rgba(160,155,145,0.35)" strokeWidth="0.8" strokeLinecap="round"
+              transform={`rotate(${deg} 18 18)`} />
           ))}
-          <circle cx="24" cy="24" r="2" fill="rgba(212,146,42,0.4)" style={{ animation: "pulse-dot 2s ease-in-out infinite" }} />
+          <circle cx="18" cy="18" r="1.5" fill="rgba(160,155,145,0.4)" style={{ animation: "pulse-dot 2s ease-in-out infinite" }} />
         </svg>
       </div>
 
-      {/* Cycling text */}
+      {/* GENLAYER label */}
+      <p style={{
+        fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 400,
+        letterSpacing: "0.35em", textTransform: "uppercase" as const,
+        color: "#B5B0A8", marginBottom: 8,
+      }}>
+        GenLayer
+      </p>
+
+      {/* Cycling oracle text — large serif like reference */}
       <p className={`transition-opacity duration-400 ${fadeClass}`} style={{
         fontFamily: "'Cormorant Garamond', Georgia, serif",
-        fontSize: 18, fontWeight: 300, fontStyle: "italic",
-        color: "#9A9A9A", textAlign: "center",
+        fontSize: 26, fontWeight: 300, fontStyle: "normal",
+        color: "#9A9590", textAlign: "center",
+        lineHeight: 1.35, maxWidth: 340,
+        letterSpacing: "0.02em",
       }}>
         {ORACLE_PHRASES[phraseIdx]}
       </p>
-      <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300, color: "#C0C0C0", marginTop: 12 }}>
+
+      {/* Decorative line */}
+      <div style={{ width: 32, height: 1, background: "rgba(180,175,165,0.3)", margin: "16px auto 10px" }} />
+
+      <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 400, color: "#C0BBB3", letterSpacing: "0.15em", textTransform: "uppercase" as const }}>
         30–60 seconds
       </p>
     </div>
