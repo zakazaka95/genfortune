@@ -41,23 +41,43 @@ const STUDIO_CHAIN_PARAMS = {
 async function ensureStudioNetwork() {
   const eth = getEthereum();
   if (!eth) throw new Error("No wallet found");
-  const currentChainId = await eth.request({ method: "eth_chainId" });
-  if (currentChainId === STUDIO_CHAIN_ID_HEX) return;
 
   try {
-    await eth.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: STUDIO_CHAIN_ID_HEX }],
-    });
-  } catch (err: any) {
-    if (err.code === 4902) {
+    const currentChainId = await eth.request({ method: "eth_chainId" });
+    console.log("Current chain ID:", currentChainId);
+
+    if (currentChainId.toLowerCase() === "0xf22f") return; // already on Studio
+
+    try {
+      await eth.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0xF22F" }],
+      });
+      return;
+    } catch (switchErr: any) {
+      console.log("Switch error code:", switchErr.code, switchErr.message);
+    }
+
+    // Try adding regardless of error code — some wallets don't return 4902
+    try {
       await eth.request({
         method: "wallet_addEthereumChain",
         params: [STUDIO_CHAIN_PARAMS],
       });
-    } else {
-      throw new Error("Could not switch to GenLayer Studio network.");
+      return;
+    } catch (addErr: any) {
+      console.log("Add error:", addErr.code, addErr.message);
     }
+
+    // If both failed, check if we're on the right network anyway
+    const finalChainId = await eth.request({ method: "eth_chainId" });
+    if (finalChainId.toLowerCase() === "0xf22f") return;
+
+    throw new Error(
+      "Please add GenLayer Studio network manually:\nRPC: https://studio.genlayer.com/api\nChain ID: 61999\nSymbol: GEN",
+    );
+  } catch (err) {
+    throw err;
   }
 }
 
