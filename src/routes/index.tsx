@@ -351,50 +351,7 @@ function FortuneCookieApp() {
       )}
 
       {/* Error */}
-      {error && (
-        <p className="mt-5 text-xs text-[#E53E3E] animate-fadeIn">{error}</p>
-      )}
+      {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
     </main>
   );
-}
-
-function extractFromReceipt(receipt: any): FortuneResult | null {
-  try {
-    // GenLayer receipts may have consensus_data.leader_receipt[0].result
-    const leaderReceipts =
-      receipt?.consensus_data?.leader_receipt ??
-      receipt?.leader_receipt;
-    if (Array.isArray(leaderReceipts) && leaderReceipts.length > 0) {
-      const lr = leaderReceipts[0];
-      const res = lr?.result ?? lr?.execution_result ?? lr?.genvm_result;
-      if (res && typeof res === "object" && res.rarity) {
-        return {
-          rarity: String(res.rarity).toUpperCase() as Rarity,
-          message: String(res.message),
-          cookie_number: Number(res.cookie_number ?? 0),
-        };
-      }
-      if (typeof res === "string") {
-        try {
-          const parsed = JSON.parse(res);
-          if (parsed.rarity) {
-            return {
-              rarity: String(parsed.rarity).toUpperCase() as Rarity,
-              message: String(parsed.message),
-              cookie_number: Number(parsed.cookie_number ?? 0),
-            };
-          }
-        } catch { /* not json */ }
-      }
-    }
-    // Also check top-level result
-    if (receipt?.result && typeof receipt.result === "object" && receipt.result.rarity) {
-      return {
-        rarity: String(receipt.result.rarity).toUpperCase() as Rarity,
-        message: String(receipt.result.message),
-        cookie_number: Number(receipt.result.cookie_number ?? 0),
-      };
-    }
-  } catch { /* ignore */ }
-  return null;
 }
