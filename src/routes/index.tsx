@@ -479,7 +479,7 @@ function FortuneCookieApp() {
         </div>
       )}
 
-      {phase === "connected" && (
+      {phase === "connected" && hasSufficientBalance && (
         <input type="text" value={keyword} onChange={(e) => setKeyword(e.target.value)}
           placeholder="Focus your intention…" className="animate-fadeIn"
           style={{
@@ -491,13 +491,16 @@ function FortuneCookieApp() {
         />
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 320 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 360 }}>
         {phase === "idle" && <button onClick={connectWallet} className="btn-pill animate-fadeIn">Connect Wallet</button>}
-        {phase === "connected" && !wrongNetwork && (
+        {phase === "connected" && !wrongNetwork && hasSufficientBalance && (
           <>
             <button onClick={openCookie} className="btn-pill animate-fadeIn">Open Your Fortune</button>
             <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#C0BBB3", marginTop: 12, letterSpacing: "0.1em" }}>0.1 GEN</p>
           </>
+        )}
+        {phase === "connected" && !wrongNetwork && !hasSufficientBalance && (
+          <InsufficientBalancePrompt balance={balance} onRecheck={recheckBalance} />
         )}
         {phase === "connected" && wrongNetwork && (
           <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, fontWeight: 400, color: "#B8860B", textAlign: "center", lineHeight: 1.6 }}>
