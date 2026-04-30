@@ -388,65 +388,97 @@ function FortuneCookieApp() {
     : "";
 
   return (
-    <main className="min-h-screen w-full bg-white flex flex-col items-center justify-center px-6 py-16">
+    <main style={{ background: "#FAFAF8", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 24px" }}>
       <h1 className="sr-only">Fortune Cookie</h1>
 
       {/* Cookie visual */}
       {phase !== "revealed" && (
-        <div className="mb-8">
-          <CookieSVG
-            shaking={phase === "cracking"}
-            fading={phase === "revealing"}
-          />
+        <div style={{ marginBottom: 32 }}>
+          <CookieSVG phase={phase} />
         </div>
       )}
 
       {/* Wallet address */}
       {wallet && phase !== "idle" && phase !== "revealed" && (
-        <p className="mb-4 text-[11px] tracking-wide text-[#AAA] font-mono">
+        <p style={{
+          fontFamily: "'Outfit', sans-serif",
+          fontSize: 12,
+          fontWeight: 300,
+          color: "#9A9A9A",
+          marginBottom: 16,
+          letterSpacing: "0.04em",
+        }}>
           {truncatedWallet}
         </p>
       )}
 
       {/* Keyword input */}
-      {(phase === "connected") && (
+      {phase === "connected" && (
         <input
           type="text"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="focus your intention… (optional)"
-          className="mb-5 w-64 text-center text-sm px-4 py-2 border border-[#E5E5E5] rounded-full outline-none focus:border-[#CCC] text-[#333] placeholder:text-[#CCC] transition-colors"
+          style={{
+            width: 280,
+            textAlign: "center",
+            fontFamily: "'Outfit', sans-serif",
+            fontSize: 14,
+            fontWeight: 300,
+            color: "#1A1A1A",
+            background: "transparent",
+            border: "none",
+            borderBottom: "1px solid rgba(0,0,0,0.12)",
+            padding: "8px 0",
+            marginBottom: 32,
+            outline: "none",
+          }}
         />
       )}
 
       {/* Actions */}
-      <div className="h-14 flex items-center justify-center">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 320 }}>
         {phase === "idle" && (
-          <button onClick={connectWallet} className="btn-cookie animate-fadeIn">
+          <button onClick={connectWallet} className="btn-primary animate-fadeIn">
             Connect Wallet
           </button>
         )}
 
         {phase === "connected" && (
-          <button onClick={openCookie} className="btn-cookie animate-fadeIn">
+          <button onClick={openCookie} className="btn-primary animate-fadeIn">
             Open Your Fortune · 0.1 GEN
           </button>
         )}
 
         {phase === "cracking" && (
-          <p className="text-sm text-[#999] animate-fadeIn">
+          <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 300, color: "#9A9A9A" }}>
             Waiting for signature…
           </p>
         )}
 
         {phase === "revealing" && (
-          <div className="flex items-center gap-2 animate-fadeIn">
-            <span className="flex gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#999] animate-pulse" />
-              <span className="h-1.5 w-1.5 rounded-full bg-[#999] animate-pulse" style={{ animationDelay: "0.2s" }} />
-              <span className="h-1.5 w-1.5 rounded-full bg-[#999] animate-pulse" style={{ animationDelay: "0.4s" }} />
-            </span>
-            <span className="text-sm text-[#999]">The oracle is consulting the validators… (30–60s)</span>
+          <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 300, color: "#9A9A9A" }}>
+              The oracle is consulting the validators
+            </p>
+            <div style={{ display: "flex", gap: 6 }}>
+              {[0, 1, 2].map(i => (
+                <span
+                  key={i}
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#1A1A1A",
+                    animation: "pulse-dot 1.4s ease-in-out infinite",
+                    animationDelay: `${i * 0.2}s`,
+                  }}
+                />
+              ))}
+            </div>
+            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300, color: "#C0C0C0" }}>
+              30–60 seconds
+            </p>
           </div>
         )}
       </div>
@@ -457,7 +489,19 @@ function FortuneCookieApp() {
       )}
 
       {/* Error */}
-      {error && <pre style={{ color: "red", fontSize: "13px", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{error}</pre>}
+      {error && (
+        <pre style={{
+          color: "#B8860B",
+          fontFamily: "'Outfit', sans-serif",
+          fontSize: 13,
+          fontWeight: 300,
+          whiteSpace: "pre-wrap",
+          margin: "16px 0 0",
+          textAlign: "center",
+        }}>
+          {error}
+        </pre>
+      )}
     </main>
   );
 }
