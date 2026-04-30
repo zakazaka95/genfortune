@@ -252,18 +252,18 @@ function FortuneCookieApp() {
       const { createClient } = await import("genlayer-js");
       const { testnetBradbury } = await import("genlayer-js/chains");
 
-      // Create client with the chain config — override RPC to user's endpoint
+      // Create client with GenLayer Studio chain config
       const customChain = {
         ...testnetBradbury,
-        id: 961,
-        name: "GenLayer Testnet",
+        id: 61999,
+        name: "GenLayer Studio",
         rpcUrls: {
-          default: { http: ["https://rpc.testnet.genlayer.com"] },
+          default: { http: ["https://studio.genlayer.com/api"] },
         },
         blockExplorers: {
           default: {
             name: "GenLayer Explorer",
-            url: "https://explorer.testnet.genlayer.com",
+            url: "https://explorer-studio.genlayer.com",
           },
         },
       };
