@@ -95,11 +95,11 @@ function CookieVisual({ phase }: { phase: Phase }) {
   return (
     <div className={phase === "cracking" ? "cookie-cracking" : "cookie-idle"}>
       <img
-        src={fortuneCookieImg}
+        src={silverCookieImg}
         alt="Fortune cookie"
-        width={240}
-        height={240}
-        style={{ filter: "drop-shadow(0 12px 32px rgba(0,0,0,0.12))" }}
+        width={220}
+        height={220}
+        style={{ filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.08))" }}
       />
     </div>
   );
