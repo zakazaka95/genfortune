@@ -229,14 +229,14 @@ function FortuneCookieApp() {
         return;
       }
 
-      // Create GenLayer client with MetaMask account
+      // Create GenLayer client with MetaMask account — studionet is where the contract lives
       const client = createClient({
-        chain: testnetAsimov,
+        chain: studionet,
         account: address as `0x${string}`,
       });
 
       console.log("genlayer-js version: 1.1.7");
-      console.log("Chain:", JSON.stringify(testnetAsimov.name));
+      console.log("Chain:", JSON.stringify(studionet.name));
       console.log("Calling writeContract with keyword:", userKeyword);
 
       // Submit via genlayer-js — routes through consensus main contract
