@@ -3,8 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
-import fortuneCookieImg from "../assets/fortune-cookie.png";
-import fortuneCookieOpenImg from "../assets/fortune-cookie-open.png";
+import silverCookieImg from "../assets/silver-cookie.png";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
 BigInt.prototype.toJSON = function () { return this.toString(); };
