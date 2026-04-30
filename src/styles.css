@@ -285,23 +285,23 @@
 .cookie-inner-glow {
   position: absolute;
   left: 50%; top: 50%;
-  width: 80px; height: 120px;
+  width: 40px; height: 80px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255,220,150,0.5) 0%, rgba(255,200,100,0.15) 50%, transparent 80%);
+  background: radial-gradient(ellipse, rgba(255,220,150,0.35) 0%, rgba(255,200,100,0.1) 50%, transparent 80%);
   animation: inner-glow-pulse 3s ease-in-out infinite;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 }
 
 .cookie-specular {
   position: absolute;
   left: 50%; top: 50%;
-  width: 200px; height: 200px;
+  width: 240px; height: 240px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.15) 30deg, transparent 60deg, transparent 180deg, rgba(255,255,255,0.1) 210deg, transparent 240deg);
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.08) 30deg, transparent 60deg, transparent 180deg, rgba(255,255,255,0.06) 210deg, transparent 240deg);
   animation: specular-sweep 8s linear infinite;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .cookie-shadow {
@@ -447,99 +447,197 @@
   z-index: 3;
 }
 
-/* ─── Rarity Card Effects ─── */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* ─── Fortune Reveal ─── */
+.fortune-reveal {
+  animation: fortune-enter 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes fortune-enter {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
-  50% { opacity: 1; transform: scale(1); }
+/* — NORMAL: clean fade — */
+.rarity-normal {
+  animation-duration: 0.5s;
 }
 
-@keyframes border-glow-gold {
-  0%, 100% { box-shadow: 0 0 15px rgba(255,215,0,0.3), 0 0 40px rgba(200,146,42,0.2), 0 0 80px rgba(200,146,42,0.1), inset 0 1px 0 rgba(255,215,0,0.15); }
-  50% { box-shadow: 0 0 25px rgba(255,215,0,0.5), 0 0 60px rgba(200,146,42,0.35), 0 0 100px rgba(200,146,42,0.15), inset 0 1px 0 rgba(255,215,0,0.25); }
-}
-
-@keyframes border-glow-purple {
-  0%, 100% { box-shadow: 0 0 15px rgba(155,127,204,0.3), 0 0 40px rgba(123,94,167,0.2), 0 0 80px rgba(123,94,167,0.08), inset 0 1px 0 rgba(155,127,204,0.15); }
-  50% { box-shadow: 0 0 25px rgba(155,127,204,0.5), 0 0 60px rgba(123,94,167,0.3), 0 0 100px rgba(123,94,167,0.12), inset 0 1px 0 rgba(155,127,204,0.25); }
-}
-
-@keyframes border-glow-blue {
-  0%, 100% { box-shadow: 0 0 12px rgba(74,111,165,0.3), 0 0 35px rgba(74,111,165,0.15), 0 0 70px rgba(74,111,165,0.06); }
-  50% { box-shadow: 0 0 20px rgba(74,111,165,0.5), 0 0 50px rgba(74,111,165,0.25), 0 0 90px rgba(74,111,165,0.1); }
-}
-
-@keyframes gold-rays {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes particle-float {
-  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-  20% { opacity: 0.8; }
-  100% { transform: translateY(-120px) translateX(20px) scale(0); opacity: 0; }
-}
-
-.card-legendary {
-  position: relative;
-  animation: border-glow-gold 3s ease-in-out infinite;
-}
-.card-legendary::before {
-  content: '';
+/* — RARE: warm champagne halo + shimmer — */
+.rare-halo {
   position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  background: linear-gradient(
-    110deg,
-    transparent 20%,
-    rgba(255,215,0,0.08) 40%,
-    rgba(255,215,0,0.15) 50%,
-    rgba(255,215,0,0.08) 60%,
-    transparent 80%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
-  pointer-events: none;
-}
-.card-legendary::after {
-  content: '';
-  position: absolute;
-  inset: -40px;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 340px; height: 280px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255,215,0,0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(220,195,150,0.18) 0%, rgba(210,185,140,0.06) 50%, transparent 75%);
+  animation: rare-glow-in 0.4s ease-out both;
   pointer-events: none;
-  animation: gold-rays 20s linear infinite;
+  z-index: 0;
+}
+@keyframes rare-glow-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-.card-unique {
-  position: relative;
-  animation: border-glow-purple 4s ease-in-out infinite;
+.rare-shimmer-text {
+  background: linear-gradient(110deg, currentColor 30%, rgba(200,175,120,0.7) 48%, rgba(200,175,120,0.9) 50%, rgba(200,175,120,0.7) 52%, currentColor 70%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 2.5s ease-in-out 0.4s 1 both;
 }
-.card-unique::before {
-  content: '';
+@keyframes text-shimmer {
+  from { background-position: 200% center; }
+  to { background-position: -200% center; }
+}
+
+/* — UNIQUE: bloom + particles — */
+.unique-bloom {
   position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  background: linear-gradient(
-    110deg,
-    transparent 20%,
-    rgba(155,127,204,0.06) 40%,
-    rgba(155,127,204,0.12) 50%,
-    rgba(155,127,204,0.06) 60%,
-    transparent 80%
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(240,225,190,0.35) 0%,
+    rgba(230,215,175,0.15) 35%,
+    transparent 65%
   );
-  background-size: 200% 100%;
-  animation: shimmer 4s ease-in-out infinite;
+  animation: unique-bloom-expand 0.8s cubic-bezier(0.16, 1, 0.3, 1) both,
+             unique-bloom-pulse 3s ease-in-out 0.8s infinite;
   pointer-events: none;
+  z-index: 0;
+}
+@keyframes unique-bloom-expand {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes unique-bloom-pulse {
+  0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
 }
 
-.card-rare {
-  position: relative;
-  animation: border-glow-blue 3.5s ease-in-out infinite;
+.unique-particle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: var(--p-size);
+  height: var(--p-size);
+  border-radius: 50%;
+  background: rgba(200,180,140,0.5);
+  animation: particle-drift var(--p-duration) ease-out infinite;
+  animation-delay: var(--p-delay);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+}
+
+/* — LEGENDARY: the event — */
+.legendary-flash {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,250,230,0.9) 0%, rgba(255,240,200,0.4) 20%, transparent 50%);
+  animation: legendary-flash-anim 0.6s ease-out both;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes legendary-flash-anim {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.2); }
+  40% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.legendary-glow-core {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,235,180,0.4) 0%,
+    rgba(255,225,160,0.15) 40%,
+    transparent 70%
+  );
+  animation: legendary-breathe 2.5s ease-in-out 0.6s infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.legendary-glow-outer {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 440px; height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse,
+    rgba(255,240,200,0.12) 0%,
+    rgba(255,230,180,0.04) 50%,
+    transparent 75%
+  );
+  animation: legendary-breathe 2.5s ease-in-out 0.8s infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes legendary-breathe {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+.legendary-rays {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px; height: 500px;
+  background: conic-gradient(from 0deg at 50% 50%,
+    transparent 0deg, rgba(255,235,190,0.06) 3deg, transparent 6deg,
+    transparent 20deg, rgba(255,235,190,0.04) 23deg, transparent 26deg,
+    transparent 40deg, rgba(255,235,190,0.07) 43deg, transparent 46deg,
+    transparent 60deg, rgba(255,235,190,0.03) 63deg, transparent 66deg,
+    transparent 80deg, rgba(255,235,190,0.05) 83deg, transparent 86deg,
+    transparent 100deg, rgba(255,235,190,0.06) 103deg, transparent 106deg,
+    transparent 120deg, rgba(255,235,190,0.04) 123deg, transparent 126deg,
+    transparent 140deg, rgba(255,235,190,0.07) 143deg, transparent 146deg,
+    transparent 160deg, rgba(255,235,190,0.03) 163deg, transparent 166deg,
+    transparent 180deg, rgba(255,235,190,0.05) 183deg, transparent 186deg,
+    transparent 200deg, rgba(255,235,190,0.06) 203deg, transparent 206deg,
+    transparent 220deg, rgba(255,235,190,0.04) 223deg, transparent 226deg,
+    transparent 240deg, rgba(255,235,190,0.07) 243deg, transparent 246deg,
+    transparent 260deg, rgba(255,235,190,0.03) 263deg, transparent 266deg,
+    transparent 280deg, rgba(255,235,190,0.05) 283deg, transparent 286deg,
+    transparent 300deg, rgba(255,235,190,0.06) 303deg, transparent 306deg,
+    transparent 320deg, rgba(255,235,190,0.04) 323deg, transparent 326deg,
+    transparent 340deg, rgba(255,235,190,0.05) 343deg, transparent 346deg,
+    transparent 360deg
+  );
+  mask-image: radial-gradient(ellipse at center, transparent 15%, white 30%, white 60%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 15%, white 30%, white 60%, transparent 80%);
+  animation: legendary-breathe 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.legendary-particle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: var(--p-size);
+  height: var(--p-size);
+  border-radius: 50%;
+  background: rgba(220,195,130,0.6);
+  animation: particle-drift var(--p-duration) ease-out infinite;
+  animation-delay: var(--p-delay);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Subtle chromatic edge for LEGENDARY card */
+.rarity-legendary > div[style] {
+  box-shadow:
+    0 4px 40px rgba(0,0,0,0.04),
+    0 0 0 1px rgba(200,170,80,0.08),
+    0 0 60px rgba(255,230,170,0.06);
 }
 
 /* ─── General ─── */
