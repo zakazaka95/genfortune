@@ -237,6 +237,9 @@ function FortuneCookieApp() {
         return;
       }
 
+      // Ensure wallet is on Studio network before creating client
+      await ensureStudioNetwork();
+
       // Create GenLayer client with MetaMask account — studionet is where the contract lives
       const client = createClient({
         chain: studionet,
