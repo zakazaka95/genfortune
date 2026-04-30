@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
+import { createClient } from "genlayer-js";
+import { testnetAsimov } from "genlayer-js/chains";
 
 export const Route = createFileRoute("/")({
   component: FortuneCookieApp,
