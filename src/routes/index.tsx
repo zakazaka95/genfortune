@@ -91,13 +91,12 @@ function getEthereum(): any {
 /* ─── Cookie Visual ─── */
 function CookieVisual({ phase }: { phase: Phase }) {
   if (phase === "revealing") return null;
+  const isConnected = phase === "connected";
 
   return (
     <div className={phase === "cracking" ? "cookie-cracking" : "cookie-breathe"}>
-      {/* Specular highlight overlay */}
       <div className="cookie-specular" />
-      {/* Inner glow pulse */}
-      <div className="cookie-inner-glow" />
+      <div className={`cookie-inner-glow ${isConnected ? "cookie-inner-glow-active" : ""}`} />
       <img
         src={silverCookieImg}
         alt="Fortune cookie"
@@ -105,7 +104,6 @@ function CookieVisual({ phase }: { phase: Phase }) {
         height={240}
         style={{ position: "relative", zIndex: 1 }}
       />
-      {/* Soft shadow underneath */}
       <div className="cookie-shadow" />
     </div>
   );
@@ -550,15 +548,18 @@ function FortuneCookieApp() {
           type="text"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder="focus your intention… (optional)"
+          placeholder="Focus your intention…"
+          className="animate-fadeIn"
           style={{
-            width: 280, textAlign: "center",
+            width: 240, textAlign: "center",
             fontFamily: "'Outfit', sans-serif",
-            fontSize: 14, fontWeight: 300,
+            fontSize: 13, fontWeight: 300,
             color: "#1A1A1A", background: "transparent",
             border: "none",
-            borderBottom: "1px solid rgba(0,0,0,0.12)",
-            padding: "8px 0", marginBottom: 32, outline: "none",
+            borderBottom: "1px solid rgba(0,0,0,0.08)",
+            padding: "8px 0", marginBottom: 36, outline: "none",
+            letterSpacing: "0.03em",
+            opacity: 0.7,
           }}
         />
       )}
@@ -572,13 +573,23 @@ function FortuneCookieApp() {
         )}
 
         {phase === "connected" && (
-          <button onClick={openCookie} className="btn-primary animate-fadeIn">
-            Open Your Fortune · 0.1 GEN
-          </button>
+          <>
+            <button onClick={openCookie} className="btn-pill animate-fadeIn">
+              Open Your Fortune
+            </button>
+            <p className="animate-fadeIn" style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: 10, fontWeight: 300,
+              color: "#C0BBB3", marginTop: 12,
+              letterSpacing: "0.1em",
+            }}>
+              0.1 GEN
+            </p>
+          </>
         )}
 
         {phase === "cracking" && (
-          <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 300, color: "#9A9A9A" }}>
+          <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 300, color: "#B0AAA0" }}>
             Waiting for signature…
           </p>
         )}
