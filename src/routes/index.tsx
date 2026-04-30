@@ -252,18 +252,17 @@ function FortuneCookieApp() {
       const { createClient } = await import("genlayer-js");
       const { testnetBradbury } = await import("genlayer-js/chains");
 
-      // Create client with GenLayer Studio chain config
       const customChain = {
         ...testnetBradbury,
-        id: 61999,
-        name: "GenLayer Studio",
+        id: 4221,
+        name: "GenLayer Testnets",
         rpcUrls: {
-          default: { http: ["https://studio.genlayer.com/api"] },
+          default: { http: ["https://zksync-os-testnet-genlayer.zksync.dev"] },
         },
         blockExplorers: {
           default: {
             name: "GenLayer Explorer",
-            url: "https://explorer-studio.genlayer.com",
+            url: "https://zksync-os-testnet-genlayer.explorer.zksync.dev",
           },
         },
       };
