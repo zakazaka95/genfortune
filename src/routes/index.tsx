@@ -387,6 +387,8 @@ function FortuneCookieApp() {
     }
     try {
       await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
+      const bal2 = await fetchBalance(addr);
+      setBalance(bal2);
       setPhase("connected");
       return;
     } catch (err: any) {
