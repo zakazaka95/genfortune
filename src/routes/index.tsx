@@ -380,6 +380,8 @@ function FortuneCookieApp() {
     // Silently switch to GenLayer Studio network
     const chainId = await eth.request({ method: "eth_chainId" });
     if (chainId.toLowerCase() === "0xf22f") {
+      const bal = await fetchBalance(addr);
+      setBalance(bal);
       setPhase("connected");
       return;
     }
