@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
+import fortuneCookieImg from "../assets/fortune-cookie.png";
+import fortuneCookieOpenImg from "../assets/fortune-cookie-open.png";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
 BigInt.prototype.toJSON = function () { return this.toString(); };
@@ -49,7 +51,7 @@ async function ensureStudioNetwork() {
     const currentChainId = await eth.request({ method: "eth_chainId" });
     console.log("Current chain ID:", currentChainId);
 
-    if (currentChainId.toLowerCase() === "0xf22f") return; // already on Studio
+    if (currentChainId.toLowerCase() === "0xf22f") return;
 
     try {
       await eth.request({
@@ -61,7 +63,6 @@ async function ensureStudioNetwork() {
       console.log("Switch error code:", switchErr.code, switchErr.message);
     }
 
-    // Try adding regardless of error code — some wallets don't return 4902
     try {
       await eth.request({
         method: "wallet_addEthereumChain",
@@ -72,7 +73,6 @@ async function ensureStudioNetwork() {
       console.log("Add error:", addErr.code, addErr.message);
     }
 
-    // If both failed, check if we're on the right network anyway
     const finalChainId = await eth.request({ method: "eth_chainId" });
     if (finalChainId.toLowerCase() === "0xf22f") return;
 
@@ -89,39 +89,137 @@ function getEthereum(): any {
   return (window as any).ethereum ?? null;
 }
 
-function CookieSVG({ phase }: { phase: Phase }) {
-  const className =
-    phase === "cracking" ? "cookie-cracking" :
-    phase === "revealing" ? "cookie-revealed" :
-    "cookie-idle";
+/* ─── Cookie Visual ─── */
+function CookieVisual({ phase }: { phase: Phase }) {
+  if (phase === "revealing") return null;
 
   return (
-    <div className={className}>
-      <svg width="260" height="220" viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Fortune cookie">
-        <ellipse cx="130" cy="200" rx="65" ry="10" fill="rgba(0,0,0,0.06)"/>
-        <path d="M38 118 Q42 170 130 172 Q218 170 222 118 Q200 136 130 138 Q60 136 38 118Z" fill="#C17F3C"/>
-        <path d="M38 118 Q42 66 130 64 Q218 66 222 118 Q200 100 130 98 Q60 100 38 118Z" fill="#E8A84C"/>
-        <path d="M38 118 Q60 128 130 130 Q200 128 222 118 Q200 108 130 106 Q60 108 38 118Z" fill="#D4922A"/>
-        <path d="M55 118 Q92 114 130 118 Q168 122 205 118" stroke="#B07828" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.6"/>
-        <rect x="96" y="111" width="68" height="16" rx="3" fill="#FFF8EE" opacity="0.95"/>
-        <line x1="103" y1="117" x2="157" y2="117" stroke="#D4922A" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-        <line x1="103" y1="121" x2="150" y2="121" stroke="#D4922A" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-        <ellipse cx="100" cy="84" rx="28" ry="12" fill="rgba(255,255,255,0.18)" transform="rotate(-18 100 84)"/>
-        <ellipse cx="72" cy="104" rx="5" ry="2.5" fill="#B8742A" opacity="0.5" transform="rotate(25 72 104)"/>
-        <ellipse cx="188" cy="128" rx="4.5" ry="2" fill="#B8742A" opacity="0.45" transform="rotate(-15 188 128)"/>
-        <ellipse cx="105" cy="148" rx="4" ry="2" fill="#B8742A" opacity="0.4" transform="rotate(8 105 148)"/>
-        <ellipse cx="158" cy="82" rx="3.5" ry="2" fill="#C8882C" opacity="0.4" transform="rotate(-30 158 82)"/>
-        <ellipse cx="80" cy="136" rx="4" ry="2" fill="#B8742A" opacity="0.35" transform="rotate(20 80 136)"/>
-      </svg>
+    <div className={phase === "cracking" ? "cookie-cracking" : "cookie-idle"}>
+      <img
+        src={fortuneCookieImg}
+        alt="Fortune cookie"
+        width={240}
+        height={240}
+        style={{ filter: "drop-shadow(0 12px 32px rgba(0,0,0,0.12))" }}
+      />
     </div>
   );
 }
 
-const RARITY_STYLES: Record<Rarity, { border: string; bg: string; color: string }> = {
-  LEGENDARY: { border: "#E8D5A3", bg: "#FFFCF0", color: "#B8860B" },
-  RARE: { border: "#C5D3ED", bg: "#F0F4FF", color: "#4A6FA5" },
-  UNIQUE: { border: "#D5C8ED", bg: "#F7F4FF", color: "#7B5EA7" },
-  NORMAL: { border: "rgba(0,0,0,0.08)", bg: "#FFFFFF", color: "#555555" },
+/* ─── Immersive Revealing State ─── */
+const ORACLE_PHRASES = [
+  "The oracle is consulting the validators…",
+  "AI minds are reaching consensus…",
+  "Your fortune is taking shape…",
+  "The chain is finalizing your destiny…",
+];
+
+function RevealingState() {
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [fadeClass, setFadeClass] = useState("opacity-100");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFadeClass("opacity-0");
+      setTimeout(() => {
+        setPhraseIdx(i => (i + 1) % ORACLE_PHRASES.length);
+        setFadeClass("opacity-100");
+      }, 400);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {/* Subtle vignette */}
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
+        background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.06) 100%)",
+      }} />
+
+      {/* Cracked cookie with glow + particles */}
+      <div style={{ position: "relative", marginBottom: 32 }}>
+        <img
+          src={fortuneCookieOpenImg}
+          alt="Cookie cracking open"
+          width={280}
+          height={280}
+          style={{
+            filter: "drop-shadow(0 0 40px rgba(212,146,42,0.35))",
+            animation: "cookie-glow 3s ease-in-out infinite",
+          }}
+        />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span
+            key={i}
+            style={{
+              position: "absolute",
+              left: `${35 + Math.random() * 30}%`,
+              bottom: "40%",
+              width: 3 + Math.random() * 3,
+              height: 3 + Math.random() * 3,
+              borderRadius: "50%",
+              background: `rgba(212, 146, 42, ${0.4 + Math.random() * 0.4})`,
+              animation: `particle-rise ${2 + Math.random() * 2}s ease-out infinite`,
+              animationDelay: `${Math.random() * 2}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Mandala spinner */}
+      <div style={{ marginBottom: 24 }}>
+        <svg width="48" height="48" viewBox="0 0 48 48" style={{ animation: "spin-slow 8s linear infinite" }}>
+          <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(212,146,42,0.2)" strokeWidth="1" />
+          <circle cx="24" cy="24" r="14" fill="none" stroke="rgba(212,146,42,0.15)" strokeWidth="0.5" strokeDasharray="4 4" />
+          {[0, 60, 120, 180, 240, 300].map(deg => (
+            <line key={deg} x1="24" y1="4" x2="24" y2="10" stroke="rgba(212,146,42,0.3)" strokeWidth="1" strokeLinecap="round"
+              transform={`rotate(${deg} 24 24)`} />
+          ))}
+          <circle cx="24" cy="24" r="2" fill="rgba(212,146,42,0.4)" style={{ animation: "pulse-dot 2s ease-in-out infinite" }} />
+        </svg>
+      </div>
+
+      {/* Cycling text */}
+      <p className={`transition-opacity duration-400 ${fadeClass}`} style={{
+        fontFamily: "'Cormorant Garamond', Georgia, serif",
+        fontSize: 18, fontWeight: 300, fontStyle: "italic",
+        color: "#9A9A9A", textAlign: "center",
+      }}>
+        {ORACLE_PHRASES[phraseIdx]}
+      </p>
+      <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300, color: "#C0C0C0", marginTop: 12 }}>
+        30–60 seconds
+      </p>
+    </div>
+  );
+}
+
+/* ─── Dramatic Rarity Cards ─── */
+const RARITY_STYLES: Record<Rarity, {
+  bg: string; border: string; color: string;
+  textColor: string; glow: string;
+}> = {
+  LEGENDARY: {
+    bg: "#1A1508", border: "#C8922A", color: "#D4A843",
+    textColor: "#F5E6C8",
+    glow: "0 0 30px rgba(200,146,42,0.4), 0 0 60px rgba(200,146,42,0.15), inset 0 1px 0 rgba(255,215,0,0.15)",
+  },
+  UNIQUE: {
+    bg: "#140E1E", border: "#7B5EA7", color: "#9B7FCC",
+    textColor: "#E8DDF5",
+    glow: "0 0 30px rgba(123,94,167,0.35), 0 0 60px rgba(123,94,167,0.12), inset 0 1px 0 rgba(155,127,204,0.15)",
+  },
+  RARE: {
+    bg: "#0C1220", border: "#4A6FA5", color: "#6B8FC5",
+    textColor: "#D0DFEF",
+    glow: "0 0 25px rgba(74,111,165,0.3), 0 0 50px rgba(74,111,165,0.1), inset 0 1px 0 rgba(107,143,197,0.15)",
+  },
+  NORMAL: {
+    bg: "#FFFFFF", border: "rgba(0,0,0,0.08)", color: "#555555",
+    textColor: "#1A1A1A",
+    glow: "0 8px 40px rgba(0,0,0,0.06)",
+  },
 };
 
 function FortuneCard({
@@ -131,55 +229,69 @@ function FortuneCard({
   result: FortuneResult;
   onOpenAnother: () => void;
 }) {
-  const style = RARITY_STYLES[result.rarity] ?? RARITY_STYLES.NORMAL;
+  const s = RARITY_STYLES[result.rarity] ?? RARITY_STYLES.NORMAL;
+  const isDark = result.rarity !== "NORMAL";
 
   return (
-    <div className="animate-fadeIn w-full max-w-sm flex flex-col items-center">
+    <div className="animate-fadeIn w-full max-w-sm flex flex-col items-center" style={{ position: "relative" }}>
+      {/* Full-screen dark overlay for epic tiers */}
+      {isDark && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
+          background: `radial-gradient(ellipse at center, ${s.bg}ee 0%, ${s.bg} 100%)`,
+          animation: "fadeIn 0.6s ease both",
+        }} />
+      )}
+
       <div
+        className={result.rarity === "LEGENDARY" ? "card-legendary" : result.rarity === "UNIQUE" ? "card-unique" : ""}
         style={{
-          background: style.bg,
-          border: `1px solid ${style.border}`,
+          position: "relative", zIndex: 1, overflow: "hidden",
+          background: s.bg,
+          border: `1px solid ${s.border}`,
           borderRadius: 20,
           padding: "48px 40px",
           textAlign: "center",
           width: "100%",
+          boxShadow: s.glow,
         }}
       >
-        {/* Decorative line */}
-        <div style={{ width: 40, height: 1, background: style.color, opacity: 0.3, margin: "0 auto 12px" }} />
+        {/* Star particles for UNIQUE */}
+        {result.rarity === "UNIQUE" && Array.from({ length: 12 }).map((_, i) => (
+          <span key={i} style={{
+            position: "absolute",
+            left: `${10 + Math.random() * 80}%`,
+            top: `${10 + Math.random() * 80}%`,
+            width: 2, height: 2, borderRadius: "50%",
+            background: "rgba(155,127,204,0.6)",
+            animation: `twinkle ${1.5 + Math.random() * 2}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 2}s`,
+          }} />
+        ))}
+
+        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.4, margin: "0 auto 12px" }} />
 
         <p style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: 10,
-          fontWeight: 500,
-          letterSpacing: "0.25em",
-          textTransform: "uppercase" as const,
-          color: style.color,
-          marginBottom: 12,
+          fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 500,
+          letterSpacing: "0.25em", textTransform: "uppercase" as const,
+          color: s.color, marginBottom: 12,
         }}>
           {result.rarity}
         </p>
 
-        {/* Decorative line */}
-        <div style={{ width: 40, height: 1, background: style.color, opacity: 0.3, margin: "0 auto 24px" }} />
+        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.4, margin: "0 auto 24px" }} />
 
         <p style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: 30,
-          fontWeight: 300,
-          fontStyle: "italic",
-          lineHeight: 1.45,
-          color: "#1A1A1A",
+          fontSize: 30, fontWeight: 300, fontStyle: "italic",
+          lineHeight: 1.45, color: s.textColor,
         }}>
           "{result.message}"
         </p>
 
         <p style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: 11,
-          fontWeight: 300,
-          color: "#C0C0C0",
-          marginTop: 24,
+          fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300,
+          color: isDark ? "rgba(255,255,255,0.3)" : "#C0C0C0", marginTop: 24,
         }}>
           Cookie #{result.cookie_number}
         </p>
@@ -187,17 +299,12 @@ function FortuneCard({
         {result.txHash && (
           <a
             href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            target="_blank" rel="noopener noreferrer"
             style={{
-              display: "inline-block",
-              marginTop: 8,
-              fontFamily: "'Outfit', sans-serif",
-              fontSize: 11,
-              fontWeight: 300,
-              color: "#9A9A9A",
-              textDecoration: "none",
-              transition: "color 0.2s",
+              display: "inline-block", marginTop: 8,
+              fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300,
+              color: isDark ? "rgba(255,255,255,0.35)" : "#9A9A9A",
+              textDecoration: "none", transition: "color 0.2s",
             }}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
             onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
@@ -207,13 +314,18 @@ function FortuneCard({
         )}
       </div>
 
-      <button onClick={onOpenAnother} className="btn-outline mt-6">
+      <button
+        onClick={onOpenAnother}
+        className={isDark ? "btn-outline-dark" : "btn-outline"}
+        style={{ marginTop: 24, position: "relative", zIndex: 1 }}
+      >
         Open Another
       </button>
     </div>
   );
 }
 
+/* ─── Main App (all logic unchanged) ─── */
 function FortuneCookieApp() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [wallet, setWallet] = useState<string | null>(null);
@@ -229,7 +341,6 @@ function FortuneCookieApp() {
       return;
     }
 
-    // 1. Request accounts — opens wallet popup
     let accounts: string[];
     try {
       accounts = await eth.request({ method: "eth_requestAccounts" });
@@ -244,7 +355,6 @@ function FortuneCookieApp() {
     }
     setWallet(addr);
 
-    // 2. Switch to Studio network
     try {
       await ensureStudioNetwork();
     } catch {
@@ -252,7 +362,6 @@ function FortuneCookieApp() {
       return;
     }
 
-    // 3. Only after network confirmed — update state
     setPhase("connected");
   }, []);
 
@@ -278,10 +387,8 @@ function FortuneCookieApp() {
         return;
       }
 
-      // Ensure wallet is on Studio network before creating client
       await ensureStudioNetwork();
 
-      // Create GenLayer client with MetaMask account — studionet is where the contract lives
       const client = createClient({
         chain: studionet,
         account: address as `0x${string}`,
@@ -291,18 +398,16 @@ function FortuneCookieApp() {
       console.log("Chain:", JSON.stringify(studionet.name));
       console.log("Calling writeContract with keyword:", userKeyword);
 
-      // Submit via genlayer-js — routes through consensus main contract
       const txHash = await client.writeContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
         functionName: "open_cookie",
         args: [userKeyword],
-        value: 100000000000000000n, // 0.1 GEN
+        value: 100000000000000000n,
       });
 
       console.log("GenLayer tx hash:", txHash);
       setPhase("revealing");
 
-      // Wait for consensus to finalize
       const receipt: any = await client.waitForTransactionReceipt({
         hash: txHash,
         status: TransactionStatus.FINALIZED,
@@ -311,12 +416,11 @@ function FortuneCookieApp() {
 
       console.log("Full receipt:", JSON.stringify(receipt, null, 2));
 
-      // Fix missing commas in GenLayer's malformed JSON readable strings
       const parseReadable = (raw: string) => {
         const fixed = raw
-          .replace(/(\d)"(?=[a-zA-Z])/g, '$1,"')     // number followed by key
-          .replace(/"(\s*)"(?=[a-zA-Z])/g, '","')     // string end followed by key
-          .replace(/}(\s*)"(?=[a-zA-Z])/g, '},"');    // object end followed by key
+          .replace(/(\d)"(?=[a-zA-Z])/g, '$1,"')
+          .replace(/"(\s*)"(?=[a-zA-Z])/g, '","')
+          .replace(/}(\s*)"(?=[a-zA-Z])/g, '},"');
         console.log("Fixed:", fixed);
         return JSON.parse(fixed);
       };
@@ -343,7 +447,6 @@ function FortuneCookieApp() {
         }
       }
 
-      // Fallback: try eq_outputs
       const eqOutput = leaderReceipt?.eq_outputs?.["0"]?.payload?.readable;
       if (eqOutput) {
         try {
@@ -391,21 +494,19 @@ function FortuneCookieApp() {
     <main style={{ background: "#FAFAF8", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 24px" }}>
       <h1 className="sr-only">Fortune Cookie</h1>
 
-      {/* Cookie visual */}
-      {phase !== "revealed" && (
+      {/* Cookie visual — hidden during revealing (RevealingState has its own) */}
+      {phase !== "revealed" && phase !== "revealing" && (
         <div style={{ marginBottom: 32 }}>
-          <CookieSVG phase={phase} />
+          <CookieVisual phase={phase} />
         </div>
       )}
 
       {/* Wallet address */}
-      {wallet && phase !== "idle" && phase !== "revealed" && (
+      {wallet && phase !== "idle" && phase !== "revealed" && phase !== "revealing" && (
         <p style={{
           fontFamily: "'Outfit', sans-serif",
-          fontSize: 12,
-          fontWeight: 300,
-          color: "#9A9A9A",
-          marginBottom: 16,
+          fontSize: 12, fontWeight: 300,
+          color: "#9A9A9A", marginBottom: 16,
           letterSpacing: "0.04em",
         }}>
           {truncatedWallet}
@@ -420,18 +521,13 @@ function FortuneCookieApp() {
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="focus your intention… (optional)"
           style={{
-            width: 280,
-            textAlign: "center",
+            width: 280, textAlign: "center",
             fontFamily: "'Outfit', sans-serif",
-            fontSize: 14,
-            fontWeight: 300,
-            color: "#1A1A1A",
-            background: "transparent",
+            fontSize: 14, fontWeight: 300,
+            color: "#1A1A1A", background: "transparent",
             border: "none",
             borderBottom: "1px solid rgba(0,0,0,0.12)",
-            padding: "8px 0",
-            marginBottom: 32,
-            outline: "none",
+            padding: "8px 0", marginBottom: 32, outline: "none",
           }}
         />
       )}
@@ -456,31 +552,7 @@ function FortuneCookieApp() {
           </p>
         )}
 
-        {phase === "revealing" && (
-          <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 300, color: "#9A9A9A" }}>
-              The oracle is consulting the validators
-            </p>
-            <div style={{ display: "flex", gap: 6 }}>
-              {[0, 1, 2].map(i => (
-                <span
-                  key={i}
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: "#1A1A1A",
-                    animation: "pulse-dot 1.4s ease-in-out infinite",
-                    animationDelay: `${i * 0.2}s`,
-                  }}
-                />
-              ))}
-            </div>
-            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300, color: "#C0C0C0" }}>
-              30–60 seconds
-            </p>
-          </div>
-        )}
+        {phase === "revealing" && <RevealingState />}
       </div>
 
       {/* Fortune result */}
@@ -493,11 +565,9 @@ function FortuneCookieApp() {
         <pre style={{
           color: "#B8860B",
           fontFamily: "'Outfit', sans-serif",
-          fontSize: 13,
-          fontWeight: 300,
+          fontSize: 13, fontWeight: 300,
           whiteSpace: "pre-wrap",
-          margin: "16px 0 0",
-          textAlign: "center",
+          margin: "16px 0 0", textAlign: "center",
         }}>
           {error}
         </pre>

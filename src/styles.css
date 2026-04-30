@@ -134,6 +134,7 @@
   }
 }
 
+/* ─── Buttons ─── */
 @layer utilities {
   .btn-primary {
     display: block;
@@ -147,8 +148,7 @@
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.08em;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
     cursor: pointer;
     border: none;
   }
@@ -174,17 +174,33 @@
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.08em;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
     cursor: pointer;
   }
   .btn-outline:hover {
     transform: translateY(-2px);
     border-color: rgba(0,0,0,0.25);
   }
-  .btn-outline:active {
-    transform: translateY(0) scale(0.98);
-    transition-duration: 0.08s;
+
+  .btn-outline-dark {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: 56px;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+    cursor: pointer;
+  }
+  .btn-outline-dark:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.3);
   }
 
   .animate-fadeIn {
@@ -192,6 +208,7 @@
   }
 }
 
+/* ─── Cookie Animations ─── */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
@@ -209,14 +226,83 @@
 
 .cookie-idle { animation: float 4s ease-in-out infinite; }
 .cookie-cracking { animation: crack 0.5s ease-in-out; }
-.cookie-revealed { opacity: 0; transform: scale(0.85); transition: all 0.4s ease; }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ─── Revealing State Animations ─── */
+@keyframes cookie-glow {
+  0%, 100% { filter: drop-shadow(0 0 30px rgba(212,146,42,0.3)); }
+  50% { filter: drop-shadow(0 0 50px rgba(212,146,42,0.5)); }
+}
+
+@keyframes particle-rise {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-80px) scale(0); opacity: 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ─── Rarity Card Effects ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.card-legendary {
+  position: relative;
+}
+.card-legendary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255,215,0,0.06) 40%,
+    rgba(255,215,0,0.12) 50%,
+    rgba(255,215,0,0.06) 60%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.card-unique {
+  position: relative;
+}
+.card-unique::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(155,127,204,0.05) 40%,
+    rgba(155,127,204,0.1) 50%,
+    rgba(155,127,204,0.05) 60%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── General ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
