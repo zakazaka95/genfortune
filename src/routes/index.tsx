@@ -395,6 +395,8 @@ function FortuneCookieApp() {
       if (err.code === 4902 || err.code === -32603) {
         try {
           await eth.request({ method: "wallet_addEthereumChain", params: [STUDIO_CHAIN_PARAMS] });
+          const bal3 = await fetchBalance(addr);
+          setBalance(bal3);
           setPhase("connected");
           return;
         } catch { setError("Could not add GenLayer Studio network. Please add it manually."); return; }
