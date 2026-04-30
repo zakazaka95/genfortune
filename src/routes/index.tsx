@@ -285,6 +285,22 @@ function FortuneCookieApp() {
   const [fortune, setFortune] = useState<FortuneResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
+  const [wrongNetwork, setWrongNetwork] = useState(false);
+
+  // Listen for network changes after connecting
+  useEffect(() => {
+    const eth = getEthereum();
+    if (!eth || !wallet) return;
+    const handleChainChange = (chainId: string) => {
+      if (chainId.toLowerCase() !== "0xf22f") {
+        setWrongNetwork(true);
+      } else {
+        setWrongNetwork(false);
+      }
+    };
+    eth.on("chainChanged", handleChainChange);
+    return () => { eth.removeListener("chainChanged", handleChainChange); };
+  }, [wallet]);
 
   const connectWallet = useCallback(async () => {
     setError(null);
@@ -295,8 +311,31 @@ function FortuneCookieApp() {
     const addr = accounts?.[0];
     if (!addr) { setError("No account found."); return; }
     setWallet(addr);
-    try { await ensureStudioNetwork(); } catch { setError("Could not switch to GenLayer Studio network. Please switch manually."); return; }
-    setPhase("connected");
+
+    // Silently switch to GenLayer Studio network
+    const chainId = await eth.request({ method: "eth_chainId" });
+    if (chainId.toLowerCase() === "0xf22f") {
+      setPhase("connected");
+      return;
+    }
+    try {
+      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
+      setPhase("connected");
+      return;
+    } catch (err: any) {
+      if (err.code === 4902 || err.code === -32603) {
+        try {
+          await eth.request({ method: "wallet_addEthereumChain", params: [STUDIO_CHAIN_PARAMS] });
+          setPhase("connected");
+          return;
+        } catch { setError("Could not add GenLayer Studio network. Please add it manually."); return; }
+      }
+      if (err.code === 4001) {
+        setError("Please switch to GenLayer Studio network to continue.");
+        return;
+      }
+      setError("Could not switch network automatically. Please switch to GenLayer Studio (Chain ID: 61999) manually.");
+    }
   }, []);
 
   const openCookie = useCallback(async () => {
