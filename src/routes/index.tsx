@@ -203,44 +203,31 @@ function RevealingState() {
   );
 }
 
-/* ─── Dramatic Rarity Cards ─── */
-const RARITY_STYLES: Record<Rarity, {
-  bg: string; border: string; color: string;
-  textColor: string; cardClass: string; labelGlow: string;
+/* ─── Fortune Result — Premium Oracle Output ─── */
+const RARITY_CONFIG: Record<Rarity, {
+  labelColor: string; textColor: string; cssClass: string;
 }> = {
-  LEGENDARY: {
-    bg: "linear-gradient(160deg, #1A1508 0%, #2A1F0A 40%, #1A1508 100%)",
-    border: "#C8922A",
-    color: "#FFD700",
-    textColor: "#F5E6C8",
-    cardClass: "card-legendary",
-    labelGlow: "0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(255,215,0,0.3)",
-  },
-  UNIQUE: {
-    bg: "linear-gradient(160deg, #0E0A18 0%, #1A1230 40%, #0E0A18 100%)",
-    border: "#7B5EA7",
-    color: "#B89FE0",
-    textColor: "#E8DDF5",
-    cardClass: "card-unique",
-    labelGlow: "0 0 15px rgba(155,127,204,0.5), 0 0 30px rgba(155,127,204,0.2)",
-  },
-  RARE: {
-    bg: "linear-gradient(160deg, #080E1A 0%, #0C1830 40%, #080E1A 100%)",
-    border: "#4A6FA5",
-    color: "#7BADE0",
-    textColor: "#D0DFEF",
-    cardClass: "card-rare",
-    labelGlow: "0 0 12px rgba(74,111,165,0.4), 0 0 25px rgba(74,111,165,0.2)",
-  },
-  NORMAL: {
-    bg: "#FFFFFF",
-    border: "rgba(0,0,0,0.08)",
-    color: "#555555",
-    textColor: "#1A1A1A",
-    cardClass: "",
-    labelGlow: "none",
-  },
+  LEGENDARY: { labelColor: "#B8960A", textColor: "#3A3226", cssClass: "rarity-legendary" },
+  UNIQUE:    { labelColor: "#8A7050", textColor: "#2E2A24", cssClass: "rarity-unique" },
+  RARE:      { labelColor: "#9A8A70", textColor: "#3A3530", cssClass: "rarity-rare" },
+  NORMAL:    { labelColor: "#B0AAA0", textColor: "#5A5650", cssClass: "rarity-normal" },
 };
+
+const LEGENDARY_PARTICLES = Array.from({ length: 24 }).map((_, i) => ({
+  angle: (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3,
+  size: 1 + Math.random() * 2,
+  delay: Math.random() * 5,
+  duration: 4 + Math.random() * 4,
+  opacity: 0.2 + Math.random() * 0.4,
+}));
+
+const UNIQUE_PARTICLES = Array.from({ length: 14 }).map((_, i) => ({
+  angle: (i / 14) * Math.PI * 2,
+  size: 1 + Math.random() * 1.5,
+  delay: Math.random() * 4,
+  duration: 5 + Math.random() * 3,
+  opacity: 0.15 + Math.random() * 0.25,
+}));
 
 function FortuneCard({
   result,
@@ -249,121 +236,122 @@ function FortuneCard({
   result: FortuneResult;
   onOpenAnother: () => void;
 }) {
-  const s = RARITY_STYLES[result.rarity] ?? RARITY_STYLES.NORMAL;
-  const isDark = result.rarity !== "NORMAL";
+  const cfg = RARITY_CONFIG[result.rarity] ?? RARITY_CONFIG.NORMAL;
+  const rarity = result.rarity;
 
   return (
-    <div className="animate-fadeIn w-full max-w-sm flex flex-col items-center" style={{ position: "relative", minHeight: 420 }}>
-      {/* Full-screen dark overlay for epic tiers */}
-      {isDark && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-          background: result.rarity === "LEGENDARY"
-            ? "radial-gradient(ellipse at center, #1A1508ee 0%, #0A0A04 100%)"
-            : result.rarity === "UNIQUE"
-            ? "radial-gradient(ellipse at center, #140E1Eee 0%, #08060E 100%)"
-            : "radial-gradient(ellipse at center, #0C1220ee 0%, #060A12 100%)",
-          animation: "fadeIn 0.6s ease both",
-        }} />
+    <div className={`fortune-reveal ${cfg.cssClass}`} style={{
+      position: "relative",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      width: "100%", maxWidth: 400,
+      minHeight: 360,
+    }}>
+
+      {/* LEGENDARY: flash + rays + breathing glow */}
+      {rarity === "LEGENDARY" && (
+        <>
+          <div className="legendary-flash" />
+          <div className="legendary-glow-core" />
+          <div className="legendary-glow-outer" />
+          <div className="legendary-rays" />
+          {LEGENDARY_PARTICLES.map((p, i) => (
+            <span key={i} className="legendary-particle" style={{
+              '--p-angle': `${p.angle}rad`,
+              '--p-delay': `${p.delay}s`,
+              '--p-duration': `${p.duration}s`,
+              '--p-size': `${p.size}px`,
+              '--p-opacity': p.opacity,
+            } as React.CSSProperties} />
+          ))}
+        </>
       )}
 
-      <div
-        className={s.cardClass}
-        style={{
-          position: "relative", zIndex: 1, overflow: "hidden",
-          background: s.bg,
-          border: `1px solid ${s.border}`,
-          borderRadius: 20,
-          padding: "48px 40px",
-          textAlign: "center",
-          width: "100%",
-          minHeight: 320,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {/* Floating gold particles for LEGENDARY */}
-        {result.rarity === "LEGENDARY" && Array.from({ length: 20 }).map((_, i) => (
-          <span key={i} style={{
-            position: "absolute",
-            left: `${5 + Math.random() * 90}%`,
-            bottom: `${-5 + Math.random() * 20}%`,
-            width: 2 + Math.random() * 3,
-            height: 2 + Math.random() * 3,
-            borderRadius: "50%",
-            background: `rgba(255, 215, 0, ${0.3 + Math.random() * 0.5})`,
-            animation: `particle-float ${3 + Math.random() * 4}s ease-out infinite`,
-            animationDelay: `${Math.random() * 4}s`,
-          }} />
-        ))}
+      {/* UNIQUE: bloom + particles */}
+      {rarity === "UNIQUE" && (
+        <>
+          <div className="unique-bloom" />
+          {UNIQUE_PARTICLES.map((p, i) => (
+            <span key={i} className="unique-particle" style={{
+              '--p-angle': `${p.angle}rad`,
+              '--p-delay': `${p.delay}s`,
+              '--p-duration': `${p.duration}s`,
+              '--p-size': `${p.size}px`,
+              '--p-opacity': p.opacity,
+            } as React.CSSProperties} />
+          ))}
+        </>
+      )}
 
-        {/* Star field for UNIQUE */}
-        {result.rarity === "UNIQUE" && Array.from({ length: 25 }).map((_, i) => (
-          <span key={i} style={{
-            position: "absolute",
-            left: `${5 + Math.random() * 90}%`,
-            top: `${5 + Math.random() * 90}%`,
-            width: 1.5 + Math.random() * 2,
-            height: 1.5 + Math.random() * 2,
-            borderRadius: "50%",
-            background: `rgba(155,127,204,${0.2 + Math.random() * 0.6})`,
-            animation: `twinkle ${1.5 + Math.random() * 3}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 3}s`,
-          }} />
-        ))}
+      {/* RARE: warm halo + shimmer */}
+      {rarity === "RARE" && (
+        <div className="rare-halo" />
+      )}
 
-        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.5, margin: "0 auto 14px" }} />
+      {/* Glass card surface */}
+      <div style={{
+        position: "relative", zIndex: 2,
+        background: "rgba(255,255,255,0.55)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
+        border: "1px solid rgba(255,255,255,0.6)",
+        borderRadius: 24,
+        padding: "52px 44px 40px",
+        textAlign: "center",
+        width: "100%",
+        minHeight: 280,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        boxShadow: "0 4px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)",
+      }}>
 
+        {/* Rarity label */}
         <p style={{
-          fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 600,
-          letterSpacing: "0.3em", textTransform: "uppercase" as const,
-          color: s.color, marginBottom: 14,
-          textShadow: isDark ? s.labelGlow : "none",
+          fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 500,
+          letterSpacing: "0.35em", textTransform: "uppercase" as const,
+          color: cfg.labelColor, marginBottom: 24,
         }}>
           {result.rarity}
         </p>
 
-        <div style={{ width: 40, height: 1, background: s.color, opacity: 0.5, margin: "0 auto 28px" }} />
-
-        <p className="fortune-text" style={{
+        {/* Fortune text */}
+        <p className={`fortune-text ${rarity === "RARE" ? "rare-shimmer-text" : ""}`} style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
           fontSize: 28, fontWeight: 300, fontStyle: "italic",
-          lineHeight: 1.5, color: s.textColor,
+          lineHeight: 1.55, color: cfg.textColor,
         }}>
           &ldquo;{result.message}&rdquo;
         </p>
 
-        <p style={{
-          fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300,
-          color: isDark ? "rgba(255,255,255,0.3)" : "#C0C0C0", marginTop: 28,
-        }}>
-          Cookie #{result.cookie_number}
-        </p>
-
-        {result.txHash && (
-          <a
-            href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`}
-            target="_blank" rel="noopener noreferrer"
-            style={{
-              display: "inline-block", marginTop: 8,
-              fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 300,
-              color: isDark ? "rgba(255,255,255,0.35)" : "#9A9A9A",
-              textDecoration: "none", transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
-          >
-            View on Explorer ↗
-          </a>
-        )}
+        {/* Cookie number + explorer link */}
+        <div style={{ marginTop: 32 }}>
+          <p style={{
+            fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300,
+            color: "#C0BBB3",
+          }}>
+            Cookie #{result.cookie_number}
+          </p>
+          {result.txHash && (
+            <a
+              href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                display: "inline-block", marginTop: 6,
+                fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300,
+                color: "#B5B0A8", textDecoration: "none", transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
+            >
+              View on Explorer ↗
+            </a>
+          )}
+        </div>
       </div>
 
       <button
         onClick={onOpenAnother}
-        className={isDark ? "btn-outline-dark" : "btn-outline"}
-        style={{ marginTop: 24, position: "relative", zIndex: 1 }}
+        className="btn-outline"
+        style={{ marginTop: 24, position: "relative", zIndex: 2 }}
       >
         Open Another
       </button>
