@@ -293,105 +293,57 @@ function FortuneCookieApp() {
 
       console.log("Full receipt:", JSON.stringify(receipt, null, 2));
 
-      // Helper: parse the malformed "readable" JSON strings from GenLayer
-      const parseReadable = (raw: any): any => {
-        if (!raw || typeof raw !== "string") return null;
-        try {
-          return JSON.parse(raw);
-        } catch {
-          // GenLayer sometimes omits commas between keys — fix common pattern
-          try {
-            const fixed = raw.replace(/"\s*"(\w)/g, '","$1');
-            return JSON.parse(fixed);
-          } catch {
-            return null;
-          }
-        }
-      };
+      try {
+        // The result is in consensus_data.leader_receipt[0].result.payload.readable
+        // It's a JSON string that needs parsing — strip any formatting issues first
+        const leaderReceipt = receipt?.consensus_data?.leader_receipt?.[0];
+        const readable = leaderReceipt?.result?.payload?.readable;
 
-      // Try every possible path in the receipt
-      const calldata =
-        receipt?.consensusData?.leaderReceipt?.result?.calldata ??
-        receipt?.consensus_data?.leader_receipt?.result?.calldata ??
-        receipt?.leaderReceipt?.result?.calldata ??
-        receipt?.result?.calldata ??
-        receipt?.calldata;
+        if (readable) {
+          // The readable string has missing commas between keys — fix it
+          const fixed = readable
+            .replace(/"\s*"(?=[a-z])/g, '","')
+            .replace(/}\s*"/g, '},"');
 
-      // Check if calldata itself has the fortune
-      if (calldata?.rarity && calldata?.message) {
-        setFortune({ rarity: calldata.rarity as Rarity, message: calldata.message, cookie_number: calldata.cookie_number ?? 1, txHash });
-        setPhase("revealed");
-        return;
-      }
+          console.log("Fixed readable:", fixed);
+          const parsed = JSON.parse(fixed);
 
-      // Try parsing readable strings from leader_receipt array
-      const leaderReceipts = receipt?.consensus_data?.leader_receipt;
-      let fortuneData: any = null;
-
-      if (Array.isArray(leaderReceipts)) {
-        for (const lr of leaderReceipts) {
-          // Check result.payload.readable (seen in actual receipts)
-          const readable = lr?.result?.payload?.readable ?? lr?.eq_outputs?.["0"]?.payload?.readable;
-          const parsed = parseReadable(readable);
           if (parsed?.rarity && parsed?.message) {
-            fortuneData = parsed;
-            break;
-          }
-          // Also check calldata directly
-          const direct = lr?.result?.calldata ?? lr?.calldata;
-          if (direct?.rarity && direct?.message) {
-            fortuneData = direct;
-            break;
+            setFortune({
+              rarity: parsed.rarity as Rarity,
+              message: parsed.message,
+              cookie_number: parsed.cookie_number ?? 1,
+              txHash,
+            });
+            setPhase("revealed");
+            return;
           }
         }
-      }
 
-      if (fortuneData?.rarity && fortuneData?.message) {
-        setFortune({ rarity: fortuneData.rarity as Rarity, message: fortuneData.message, cookie_number: fortuneData.cookie_number ?? 1, txHash });
-        setPhase("revealed");
-        return;
-      }
-
-      // Fallback: poll Studio API directly
-      console.log("Receipt path not found, trying Studio API...");
-      let apiResult: any = null;
-      for (let i = 0; i < 15; i++) {
-        await new Promise(r => setTimeout(r, 3000));
-        try {
-          const res = await fetch("https://studio.genlayer.com/api/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jsonrpc: "2.0", method: "eth_getTransactionByHash", params: [txHash], id: 1 }),
-          });
-          const data = await res.json();
-          console.log("Studio API response attempt", i, ":", JSON.stringify(data, null, 2));
-
-          const cd = data?.result?.consensus_data?.leader_receipt?.result?.calldata
-            ?? data?.result?.leaderReceipt?.result?.calldata;
-          if (cd?.rarity && cd?.message) { apiResult = cd; break; }
-
-          // Try readable path in API response too
-          const apiLeaders = data?.result?.consensus_data?.leader_receipt;
-          if (Array.isArray(apiLeaders)) {
-            for (const lr of apiLeaders) {
-              const parsed = parseReadable(lr?.result?.payload?.readable);
-              if (parsed?.rarity && parsed?.message) { apiResult = parsed; break; }
-            }
-            if (apiResult) break;
+        // Fallback: try eq_outputs
+        const eqOutput = leaderReceipt?.eq_outputs?.["0"]?.payload?.readable;
+        if (eqOutput) {
+          const fixed2 = eqOutput
+            .replace(/"\s*"(?=[a-z])/g, '","')
+            .replace(/}\s*"/g, '},"');
+          const parsed2 = JSON.parse(fixed2);
+          if (parsed2?.rarity && parsed2?.message) {
+            setFortune({
+              rarity: parsed2.rarity as Rarity,
+              message: parsed2.message,
+              cookie_number: 1,
+              txHash,
+            });
+            setPhase("revealed");
+            return;
           }
-        } catch (e) {
-          console.log("API attempt", i, "failed:", e);
         }
+      } catch (e) {
+        console.error("Parse error:", e);
       }
 
-      if (apiResult) {
-        setFortune({ rarity: apiResult.rarity as Rarity, message: apiResult.message, cookie_number: apiResult.cookie_number ?? 1, txHash });
-        setPhase("revealed");
-      } else {
-        console.log("Could not extract fortune from receipt:", JSON.stringify(receipt, null, 2));
-        setError("Fortune confirmed onchain but could not display. Check explorer for your result.");
-        setPhase("connected");
-      }
+      setError("Fortune confirmed onchain but could not display. Check explorer for your result.");
+      setPhase("connected");
     } catch (err: any) {
       console.error("Full error:", err);
       if (err?.code === 4001) {
