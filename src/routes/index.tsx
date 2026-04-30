@@ -195,7 +195,7 @@ function FortuneCookieApp() {
   }, []);
 
   const openCookie = useCallback(async () => {
-    setStateSafe(setError, "");
+    setError("");
     setFortune(null);
     setPhase("cracking");
 
