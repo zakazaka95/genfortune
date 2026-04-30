@@ -416,11 +416,16 @@ function FortuneCookieApp() {
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 320 }}>
         {phase === "idle" && <button onClick={connectWallet} className="btn-pill animate-fadeIn">Connect Wallet</button>}
-        {phase === "connected" && (
+        {phase === "connected" && !wrongNetwork && (
           <>
             <button onClick={openCookie} className="btn-pill animate-fadeIn">Open Your Fortune</button>
             <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#C0BBB3", marginTop: 12, letterSpacing: "0.1em" }}>0.1 GEN</p>
           </>
+        )}
+        {phase === "connected" && wrongNetwork && (
+          <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, fontWeight: 400, color: "#B8860B", textAlign: "center", lineHeight: 1.6 }}>
+            Wrong network — please switch back to GenLayer Studio
+          </p>
         )}
         {phase === "cracking" && <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 300, color: "#B0AAA0" }}>Waiting for signature…</p>}
         {phase === "revealing" && <RevealingState />}
