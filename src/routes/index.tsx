@@ -253,6 +253,8 @@ function FortuneCookieApp() {
       // Wait for consensus to finalize
       const receipt: any = await client.waitForTransactionReceipt({
         hash: txHash,
+        status: TransactionStatus.FINALIZED,
+        retries: 60,
       });
 
       console.log("Full receipt:", JSON.stringify(receipt, null, 2));
