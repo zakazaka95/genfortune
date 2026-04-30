@@ -228,98 +228,86 @@ function FortuneCookieApp() {
         return;
       }
 
-      const txHash = await eth.request({
-        method: "eth_sendTransaction",
-        params: [{
-          from: address,
-          to: CONTRACT_ADDRESS,
-          value: "0x16345785D8A0000",
-          data: "0x",
-          gas: "0x186A0",
-        }],
+      // Create GenLayer client with MetaMask account
+      const client = createClient({
+        chain: testnetAsimov,
+        account: address as `0x${string}`,
       });
 
-      void userKeyword;
+      console.log("genlayer-js version: 1.1.7");
+      console.log("Chain:", JSON.stringify(testnetAsimov.name));
+      console.log("Calling writeContract with keyword:", userKeyword);
 
+      // Submit via genlayer-js — routes through consensus main contract
+      const txHash = await client.writeContract({
+        address: CONTRACT_ADDRESS as `0x${string}`,
+        functionName: "open_cookie",
+        args: [userKeyword],
+        value: BigInt("100000000000000000"), // 0.1 GEN
+      });
+
+      console.log("GenLayer tx hash:", txHash);
       setPhase("revealing");
 
-      let receipt = null;
-      let attempts = 0;
-      while (!receipt && attempts < 30) {
-        await new Promise((resolve) => window.setTimeout(resolve, 2000));
-        try {
-          receipt = await eth.request({
-            method: "eth_getTransactionReceipt",
-            params: [txHash],
-          });
-        } catch {
-          // keep polling
-        }
-        attempts++;
-      }
+      // Wait for consensus to finalize
+      const receipt = await client.waitForTransactionReceipt({
+        hash: txHash,
+        status: "ACCEPTED",
+      });
 
-      if (!receipt) {
-        setError(
-          "Transaction timed out. Check explorer: https://zksync-os-testnet-genlayer.explorer.zksync.dev",
-        );
-        setPhase("connected");
-        return;
-      }
+      console.log("Full receipt:", JSON.stringify(receipt, null, 2));
 
-      // Poll Explorer REST API for the actual fortune result
-      let fortuneResult: FortuneResult | null = null;
-      let resultAttempts = 0;
-      while (!fortuneResult && resultAttempts < 25) {
-        await new Promise((r) => window.setTimeout(r, 4000));
-        try {
-          const response = await fetch(
-            `https://explorer-studio.genlayer.com/api/transactions/${txHash}`,
-            { headers: { Accept: "application/json" } },
-          );
-          const data = await response.json();
-          console.log("Raw response:", JSON.stringify(data, null, 2));
+      // Extract result — check multiple paths in the receipt
+      const leaderReceipts = receipt?.consensus_data?.leader_receipt;
+      let fortuneData: any = null;
 
-          const paths = [
-            data?.consensus_data?.leader_receipt?.result?.calldata,
-            data?.data?.consensus_data?.leader_receipt?.result?.calldata,
-            data?.transaction?.consensus_data?.leader_receipt?.result?.calldata,
-            data?.result?.consensus_data?.leader_receipt?.result?.calldata,
-            data?.leader_receipt?.result?.calldata,
-          ];
-
-          for (const candidate of paths) {
-            if (candidate?.rarity && candidate?.message) {
-              fortuneResult = {
-                rarity: candidate.rarity as Rarity,
-                message: candidate.message,
-                cookie_number: candidate.cookie_number ?? 1,
-                txHash,
-              };
-              break;
-            }
+      if (Array.isArray(leaderReceipts)) {
+        for (const lr of leaderReceipts) {
+          const candidate = lr?.calldata?.readable ?? lr?.result?.calldata ?? lr?.calldata;
+          if (candidate?.rarity && candidate?.message) {
+            fortuneData = candidate;
+            break;
           }
-        } catch (e) {
-          console.log("Poll attempt", resultAttempts, ":", e);
         }
-        resultAttempts++;
+      } else if (leaderReceipts?.calldata?.readable) {
+        fortuneData = leaderReceipts.calldata.readable;
+      } else if (leaderReceipts?.result?.calldata) {
+        fortuneData = leaderReceipts.result.calldata;
       }
 
-      if (fortuneResult) {
-        setFortune(fortuneResult);
+      // Also try top-level paths
+      if (!fortuneData) {
+        const topLevel = receipt?.consensus_data?.leader_receipt?.result?.calldata
+          ?? receipt?.result?.consensus_data?.leader_receipt?.result?.calldata;
+        if (topLevel?.rarity && topLevel?.message) {
+          fortuneData = topLevel;
+        }
+      }
+
+      if (fortuneData?.rarity && fortuneData?.message) {
+        setFortune({
+          rarity: fortuneData.rarity as Rarity,
+          message: fortuneData.message,
+          cookie_number: fortuneData.cookie_number ?? 1,
+          txHash,
+        });
+        setPhase("revealed");
       } else {
+        console.log("Could not extract fortune from receipt:", JSON.stringify(receipt, null, 2));
         setFortune({
           rarity: "NORMAL",
           message: "The oracle has spoken — check the explorer for your fortune.",
           cookie_number: 1,
           txHash,
         });
+        setPhase("revealed");
       }
-      setPhase("revealed");
     } catch (err: any) {
+      console.error("Full error:", err);
       if (err?.code === 4001) {
         setError("Transaction rejected.");
       } else {
-        setError(`Error: ${err?.message || "Something went wrong."}`);
+        setError(err?.message || "Something went wrong.");
       }
       setPhase("connected");
     }
