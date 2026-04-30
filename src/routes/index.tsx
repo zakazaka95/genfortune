@@ -279,6 +279,69 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
 }
 
 /* ─── Main App ─── */
+const REQUIRED_BALANCE = 100000000000000000n; // 0.1 GEN in wei
+
+async function fetchBalance(address: string): Promise<bigint> {
+  const eth = getEthereum();
+  if (!eth) return 0n;
+  const hex: string = await eth.request({ method: "eth_getBalance", params: [address, "latest"] });
+  return BigInt(hex);
+}
+
+function InsufficientBalancePrompt({ balance, onRecheck }: { balance: bigint; onRecheck: () => void }) {
+  const formattedBalance = (Number(balance) / 1e18).toFixed(4);
+  const [checking, setChecking] = useState(false);
+
+  const handleRecheck = async () => {
+    setChecking(true);
+    await onRecheck();
+    setChecking(false);
+  };
+
+  const textStyle = (size: number, weight: number, color: string, extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: "'Outfit', sans-serif", fontSize: size, fontWeight: weight, color, ...extra,
+  });
+
+  return (
+    <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: 340, textAlign: "center" }}>
+      <p style={textStyle(15, 400, "#3A3530", { marginBottom: 8 })}>You need GEN to open a fortune</p>
+      <p style={textStyle(11, 300, "#A8A29E", { marginBottom: 28, lineHeight: 1.6 })}>
+        Get free GEN from the GenLayer Studio faucet — instant and free
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32, width: "100%" }}>
+        {["Go to studio.genlayer.com", "Connect your wallet", "Click the faucet button next to your address", "Come back and click the button below"].map((step, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <span style={textStyle(10, 500, "#C0BBB3", { minWidth: 16 })}>{i + 1}</span>
+            <span style={textStyle(11, 300, "#78716C", { textAlign: "left", lineHeight: 1.5 })}>{step}</span>
+          </div>
+        ))}
+      </div>
+
+      <a href="https://studio.genlayer.com" target="_blank" rel="noopener noreferrer"
+        className="btn-pill" style={{ textDecoration: "none", marginBottom: 12, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+        Open GenLayer Studio →
+      </a>
+
+      <button onClick={handleRecheck} disabled={checking}
+        style={{
+          ...textStyle(12, 400, "#78716C"),
+          background: "transparent", border: "1px solid rgba(0,0,0,0.08)",
+          borderRadius: 999, padding: "8px 24px", cursor: "pointer",
+          transition: "all 0.2s", opacity: checking ? 0.5 : 1,
+        }}
+        onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(0,0,0,0.2)"; }}
+        onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = "rgba(0,0,0,0.08)"; }}>
+        {checking ? "Checking…" : "I have GEN now"}
+      </button>
+
+      <p style={textStyle(9, 300, "#C5C0B8", { marginTop: 20, letterSpacing: "0.05em" })}>
+        Balance: {formattedBalance} GEN
+      </p>
+    </div>
+  );
+}
+
 function FortuneCookieApp() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [wallet, setWallet] = useState<string | null>(null);
@@ -286,6 +349,8 @@ function FortuneCookieApp() {
   const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
   const [wrongNetwork, setWrongNetwork] = useState(false);
+  const [balance, setBalance] = useState<bigint>(0n);
+  const hasSufficientBalance = balance >= REQUIRED_BALANCE;
 
   // Listen for network changes after connecting
   useEffect(() => {
@@ -315,17 +380,23 @@ function FortuneCookieApp() {
     // Silently switch to GenLayer Studio network
     const chainId = await eth.request({ method: "eth_chainId" });
     if (chainId.toLowerCase() === "0xf22f") {
+      const bal = await fetchBalance(addr);
+      setBalance(bal);
       setPhase("connected");
       return;
     }
     try {
       await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
+      const bal2 = await fetchBalance(addr);
+      setBalance(bal2);
       setPhase("connected");
       return;
     } catch (err: any) {
       if (err.code === 4902 || err.code === -32603) {
         try {
           await eth.request({ method: "wallet_addEthereumChain", params: [STUDIO_CHAIN_PARAMS] });
+          const bal3 = await fetchBalance(addr);
+          setBalance(bal3);
           setPhase("connected");
           return;
         } catch { setError("Could not add GenLayer Studio network. Please add it manually."); return; }
@@ -384,6 +455,12 @@ function FortuneCookieApp() {
     }
   }, [keyword, wallet]);
 
+  const recheckBalance = useCallback(async () => {
+    if (!wallet) return;
+    const bal = await fetchBalance(wallet);
+    setBalance(bal);
+  }, [wallet]);
+
   const goBackToConnected = useCallback(() => { setFortune(null); setError(null); setPhase("connected"); }, []);
 
   return (
@@ -396,13 +473,21 @@ function FortuneCookieApp() {
 
       {(phase === "idle" || phase === "connected") && <div className="oracle-pattern" />}
 
+      {/* Wallet info — top right */}
+      {wallet && phase === "connected" && (
+        <div style={{ position: "absolute", top: 20, right: 24, fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 300, color: "#C0BBB3", letterSpacing: "0.05em", textAlign: "right", zIndex: 10 }}>
+          <span>{wallet.slice(0, 6)}…{wallet.slice(-4)}</span>
+          <span style={{ marginLeft: 8 }}>{(Number(balance) / 1e18).toFixed(2)} GEN</span>
+        </div>
+      )}
+
       {phase !== "revealed" && phase !== "revealing" && (
         <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
           <CookieVisual phase={phase} />
         </div>
       )}
 
-      {phase === "connected" && (
+      {phase === "connected" && hasSufficientBalance && (
         <input type="text" value={keyword} onChange={(e) => setKeyword(e.target.value)}
           placeholder="Focus your intention…" className="animate-fadeIn"
           style={{
@@ -414,13 +499,16 @@ function FortuneCookieApp() {
         />
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 320 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 360 }}>
         {phase === "idle" && <button onClick={connectWallet} className="btn-pill animate-fadeIn">Connect Wallet</button>}
-        {phase === "connected" && !wrongNetwork && (
+        {phase === "connected" && !wrongNetwork && hasSufficientBalance && (
           <>
             <button onClick={openCookie} className="btn-pill animate-fadeIn">Open Your Fortune</button>
             <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#C0BBB3", marginTop: 12, letterSpacing: "0.1em" }}>0.1 GEN</p>
           </>
+        )}
+        {phase === "connected" && !wrongNetwork && !hasSufficientBalance && (
+          <InsufficientBalancePrompt balance={balance} onRecheck={recheckBalance} />
         )}
         {phase === "connected" && wrongNetwork && (
           <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, fontWeight: 400, color: "#B8860B", textAlign: "center", lineHeight: 1.6 }}>
