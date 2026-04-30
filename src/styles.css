@@ -285,23 +285,23 @@
 .cookie-inner-glow {
   position: absolute;
   left: 50%; top: 50%;
-  width: 80px; height: 120px;
+  width: 40px; height: 80px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255,220,150,0.5) 0%, rgba(255,200,100,0.15) 50%, transparent 80%);
+  background: radial-gradient(ellipse, rgba(255,220,150,0.35) 0%, rgba(255,200,100,0.1) 50%, transparent 80%);
   animation: inner-glow-pulse 3s ease-in-out infinite;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 }
 
 .cookie-specular {
   position: absolute;
   left: 50%; top: 50%;
-  width: 200px; height: 200px;
+  width: 240px; height: 240px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.15) 30deg, transparent 60deg, transparent 180deg, rgba(255,255,255,0.1) 210deg, transparent 240deg);
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.08) 30deg, transparent 60deg, transparent 180deg, rgba(255,255,255,0.06) 210deg, transparent 240deg);
   animation: specular-sweep 8s linear infinite;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .cookie-shadow {
