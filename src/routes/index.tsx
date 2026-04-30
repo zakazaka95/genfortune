@@ -28,15 +28,38 @@ interface FortuneResult {
 }
 
 const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
-const CHAIN_HEX = "0x107d"; // 4221
+const STUDIO_CHAIN_ID_HEX = "0xF22F"; // 61999
 
-const GENLAYER_CHAIN_PARAMS = {
-  chainId: CHAIN_HEX,
-  chainName: "GenLayer Testnets",
+const STUDIO_CHAIN_PARAMS = {
+  chainId: STUDIO_CHAIN_ID_HEX,
+  chainName: "GenLayer Studio",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://zksync-os-testnet-genlayer.zksync.dev"],
-  blockExplorerUrls: ["https://zksync-os-testnet-genlayer.explorer.zksync.dev"],
+  rpcUrls: ["https://studio.genlayer.com/api"],
+  blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
 };
+
+async function ensureStudioNetwork() {
+  const eth = getEthereum();
+  if (!eth) throw new Error("No wallet found");
+  const currentChainId = await eth.request({ method: "eth_chainId" });
+  if (currentChainId === STUDIO_CHAIN_ID_HEX) return;
+
+  try {
+    await eth.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: STUDIO_CHAIN_ID_HEX }],
+    });
+  } catch (err: any) {
+    if (err.code === 4902) {
+      await eth.request({
+        method: "wallet_addEthereumChain",
+        params: [STUDIO_CHAIN_PARAMS],
+      });
+    } else {
+      throw new Error("Could not switch to GenLayer Studio network.");
+    }
+  }
+}
 
 function getEthereum(): any {
   if (typeof window === "undefined") return null;
@@ -180,27 +203,12 @@ function FortuneCookieApp() {
     }
     setWallet(addr);
 
-    // 2. Only THEN switch network
+    // 2. Switch to Studio network
     try {
-      await eth.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: CHAIN_HEX }],
-      });
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        try {
-          await eth.request({
-            method: "wallet_addEthereumChain",
-            params: [GENLAYER_CHAIN_PARAMS],
-          });
-        } catch {
-          setError("Could not add GenLayer network. Please add it manually in your wallet.");
-          return;
-        }
-      } else {
-        setError("Could not switch to GenLayer network. Please switch manually.");
-        return;
-      }
+      await ensureStudioNetwork();
+    } catch {
+      setError("Could not switch to GenLayer Studio network. Please switch manually.");
+      return;
     }
 
     // 3. Only after network confirmed — update state
@@ -228,6 +236,9 @@ function FortuneCookieApp() {
         setPhase("idle");
         return;
       }
+
+      // Ensure wallet is on Studio network before creating client
+      await ensureStudioNetwork();
 
       // Create GenLayer client with MetaMask account — studionet is where the contract lives
       const client = createClient({
