@@ -264,6 +264,24 @@ function FortuneCookieApp() {
         return;
       }
 
+      // Debug: log the full API response
+      try {
+        const debugResp = await fetch("https://studio.genlayer.com/api", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "gen_getTransactionByHash",
+            params: [txHash],
+            id: 1,
+          }),
+        });
+        const debugData = await debugResp.json();
+        console.log("FULL RESPONSE:", JSON.stringify(debugData, null, 2));
+      } catch (e) {
+        console.error("Debug fetch failed:", e);
+      }
+
       // Poll gen_getTransactionByHash for the actual fortune result
       let fortuneResult: FortuneResult | null = null;
       let resultAttempts = 0;
