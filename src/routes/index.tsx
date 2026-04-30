@@ -127,6 +127,16 @@ function FortuneCard({
         <p className="mt-4 text-[11px] tracking-wide text-[#AAA]">
           Cookie #{result.cookie_number}
         </p>
+        {result.txHash && (
+          <a
+            href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-3 text-[11px] text-[#999] underline hover:text-[#666] transition-colors"
+          >
+            View on Explorer ↗
+          </a>
+        )}
       </div>
       <div className="mt-6 flex justify-center">
         <button onClick={onOpenAnother} className="btn-cookie">
@@ -254,12 +264,49 @@ function FortuneCookieApp() {
         return;
       }
 
-      setFortune({
-        rarity: "NORMAL",
-        message: "Your fortune is being revealed by the oracle…",
-        cookie_number: 1,
-        txHash,
-      });
+      // Poll gen_getTransactionByHash for the actual fortune result
+      let fortuneResult: FortuneResult | null = null;
+      let resultAttempts = 0;
+      while (!fortuneResult && resultAttempts < 20) {
+        await new Promise((r) => window.setTimeout(r, 3000));
+        try {
+          const response = await fetch("https://studio.genlayer.com/api", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              method: "gen_getTransactionByHash",
+              params: [txHash],
+              id: 1,
+            }),
+          });
+          const data = await response.json();
+          const consensusData = data?.result?.consensus_data;
+          const leaderResult = consensusData?.leader_receipt?.result?.calldata;
+          if (leaderResult) {
+            fortuneResult = {
+              rarity: (leaderResult.rarity || "NORMAL") as Rarity,
+              message: leaderResult.message || "The oracle speaks in silence.",
+              cookie_number: leaderResult.cookie_number || 1,
+              txHash,
+            };
+          }
+        } catch (e) {
+          console.error("Result fetch error:", e);
+        }
+        resultAttempts++;
+      }
+
+      if (fortuneResult) {
+        setFortune(fortuneResult);
+      } else {
+        setFortune({
+          rarity: "NORMAL",
+          message: "The oracle has spoken — check the explorer for your fortune.",
+          cookie_number: 1,
+          txHash,
+        });
+      }
       setPhase("revealed");
     } catch (err: any) {
       if (err?.code === 4001) {
