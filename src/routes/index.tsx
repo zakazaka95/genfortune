@@ -278,7 +278,7 @@ function FortuneCookieApp() {
         address: CONTRACT_ADDRESS as `0x${string}`,
         functionName: "open_cookie",
         args: [userKeyword],
-        value: BigInt("100000000000000000"), // 0.1 GEN
+        value: 100000000000000000n, // 0.1 GEN
       });
 
       console.log("GenLayer tx hash:", txHash);
