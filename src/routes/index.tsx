@@ -455,6 +455,12 @@ function FortuneCookieApp() {
     }
   }, [keyword, wallet]);
 
+  const recheckBalance = useCallback(async () => {
+    if (!wallet) return;
+    const bal = await fetchBalance(wallet);
+    setBalance(bal);
+  }, [wallet]);
+
   const goBackToConnected = useCallback(() => { setFortune(null); setError(null); setPhase("connected"); }, []);
 
   return (
