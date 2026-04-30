@@ -24,14 +24,14 @@ interface FortuneResult {
 }
 
 const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
-const CHAIN_HEX = "0xF22F"; // 61999
+const CHAIN_HEX = "0x107d"; // 4221
 
 const GENLAYER_CHAIN_PARAMS = {
   chainId: CHAIN_HEX,
-  chainName: "GenLayer Studio",
+  chainName: "GenLayer Testnets",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://studio.genlayer.com/api"],
-  blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
+  rpcUrls: ["https://zksync-os-testnet-genlayer.zksync.dev"],
+  blockExplorerUrls: ["https://zksync-os-testnet-genlayer.explorer.zksync.dev"],
 };
 
 function getEthereum(): any {
