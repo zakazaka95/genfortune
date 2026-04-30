@@ -127,6 +127,16 @@ function FortuneCard({
         <p className="mt-4 text-[11px] tracking-wide text-[#AAA]">
           Cookie #{result.cookie_number}
         </p>
+        {result.txHash && (
+          <a
+            href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-3 text-[11px] text-[#999] underline hover:text-[#666] transition-colors"
+          >
+            View on Explorer ↗
+          </a>
+        )}
       </div>
       <div className="mt-6 flex justify-center">
         <button onClick={onOpenAnother} className="btn-cookie">
