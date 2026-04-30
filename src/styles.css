@@ -122,6 +122,8 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   html, body {
@@ -259,8 +261,35 @@
   50% { opacity: 1; transform: scale(1); }
 }
 
+@keyframes border-glow-gold {
+  0%, 100% { box-shadow: 0 0 15px rgba(255,215,0,0.3), 0 0 40px rgba(200,146,42,0.2), 0 0 80px rgba(200,146,42,0.1), inset 0 1px 0 rgba(255,215,0,0.15); }
+  50% { box-shadow: 0 0 25px rgba(255,215,0,0.5), 0 0 60px rgba(200,146,42,0.35), 0 0 100px rgba(200,146,42,0.15), inset 0 1px 0 rgba(255,215,0,0.25); }
+}
+
+@keyframes border-glow-purple {
+  0%, 100% { box-shadow: 0 0 15px rgba(155,127,204,0.3), 0 0 40px rgba(123,94,167,0.2), 0 0 80px rgba(123,94,167,0.08), inset 0 1px 0 rgba(155,127,204,0.15); }
+  50% { box-shadow: 0 0 25px rgba(155,127,204,0.5), 0 0 60px rgba(123,94,167,0.3), 0 0 100px rgba(123,94,167,0.12), inset 0 1px 0 rgba(155,127,204,0.25); }
+}
+
+@keyframes border-glow-blue {
+  0%, 100% { box-shadow: 0 0 12px rgba(74,111,165,0.3), 0 0 35px rgba(74,111,165,0.15), 0 0 70px rgba(74,111,165,0.06); }
+  50% { box-shadow: 0 0 20px rgba(74,111,165,0.5), 0 0 50px rgba(74,111,165,0.25), 0 0 90px rgba(74,111,165,0.1); }
+}
+
+@keyframes gold-rays {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(-120px) translateX(20px) scale(0); opacity: 0; }
+}
+
 .card-legendary {
   position: relative;
+  animation: border-glow-gold 3s ease-in-out infinite;
 }
 .card-legendary::before {
   content: '';
@@ -270,18 +299,28 @@
   background: linear-gradient(
     110deg,
     transparent 20%,
-    rgba(255,215,0,0.06) 40%,
-    rgba(255,215,0,0.12) 50%,
-    rgba(255,215,0,0.06) 60%,
+    rgba(255,215,0,0.08) 40%,
+    rgba(255,215,0,0.15) 50%,
+    rgba(255,215,0,0.08) 60%,
     transparent 80%
   );
   background-size: 200% 100%;
   animation: shimmer 3s ease-in-out infinite;
   pointer-events: none;
 }
+.card-legendary::after {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255,215,0,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  animation: gold-rays 20s linear infinite;
+}
 
 .card-unique {
   position: relative;
+  animation: border-glow-purple 4s ease-in-out infinite;
 }
 .card-unique::before {
   content: '';
@@ -291,14 +330,19 @@
   background: linear-gradient(
     110deg,
     transparent 20%,
-    rgba(155,127,204,0.05) 40%,
-    rgba(155,127,204,0.1) 50%,
-    rgba(155,127,204,0.05) 60%,
+    rgba(155,127,204,0.06) 40%,
+    rgba(155,127,204,0.12) 50%,
+    rgba(155,127,204,0.06) 60%,
     transparent 80%
   );
   background-size: 200% 100%;
   animation: shimmer 4s ease-in-out infinite;
   pointer-events: none;
+}
+
+.card-rare {
+  position: relative;
+  animation: border-glow-blue 3.5s ease-in-out infinite;
 }
 
 /* ─── General ─── */
