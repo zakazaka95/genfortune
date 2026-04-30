@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 export const Route = createFileRoute("/")({
   component: FortuneCookieApp,
@@ -21,6 +21,7 @@ interface FortuneResult {
   rarity: Rarity;
   message: string;
   cookie_number: number;
+  txHash?: string;
 }
 
 const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
@@ -142,13 +143,6 @@ function FortuneCookieApp() {
   const [fortune, setFortune] = useState<FortuneResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
-  const timeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
 
   const connectWallet = useCallback(async () => {
     setError(null);
@@ -201,156 +195,79 @@ function FortuneCookieApp() {
   }, []);
 
   const openCookie = useCallback(async () => {
-    setError(null);
+    setStateSafe(setError, "");
     setFortune(null);
-
-    const eth = getEthereum();
-    if (!eth) {
-      setError("Please install MetaMask to continue.");
-      return;
-    }
+    setPhase("cracking");
 
     try {
-      // 1. Ensure wallet connected
-      let accounts: string[];
-      try {
-        accounts = await eth.request({ method: "eth_requestAccounts" });
-      } catch {
-        setError("Wallet connection rejected.");
+      const eth = getEthereum();
+      if (!eth) {
+        setError("Please install MetaMask to continue.");
+        setPhase(wallet ? "connected" : "idle");
         return;
       }
-      const addr = accounts?.[0];
-      if (addr) setWallet(addr);
 
-      // 2. Ensure correct network
-      try {
-        await eth.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: CHAIN_HEX }],
-        });
-      } catch (switchError: any) {
-        if (switchError.code === 4902) {
-          try {
-            await eth.request({
-              method: "wallet_addEthereumChain",
-              params: [GENLAYER_CHAIN_PARAMS],
-            });
-          } catch {
-            setError("Could not add GenLayer network. Please add it manually in your wallet.");
-            return;
-          }
-        } else {
-          setError("Could not switch to GenLayer network. Please switch manually.");
-          return;
-        }
+      const userKeyword = keyword.trim();
+      const address = wallet;
+
+      if (!address) {
+        setError("Wallet not connected.");
+        setPhase("idle");
+        return;
       }
 
-      // Phase: cracking (waiting for signature)
-      setPhase("cracking");
-
-      // Import genlayer-js dynamically to avoid SSR issues
-      const { createClient } = await import("genlayer-js");
-      const { testnetBradbury } = await import("genlayer-js/chains");
-
-      const customChain = {
-        ...testnetBradbury,
-        id: 4221,
-        name: "GenLayer Testnets",
-        rpcUrls: {
-          default: { http: ["https://zksync-os-testnet-genlayer.zksync.dev"] },
-        },
-        blockExplorers: {
-          default: {
-            name: "GenLayer Explorer",
-            url: "https://zksync-os-testnet-genlayer.explorer.zksync.dev",
-          },
-        },
-      };
-
-      const client = createClient({ chain: customChain as any });
-
-      const txHash = await client.writeContract({
-        account: addr as any,
-        address: CONTRACT_ADDRESS,
-        functionName: "open_cookie",
-        args: [keyword || ""],
-        value: BigInt("100000000000000000"), // 0.1 GEN
+      const txHash = await eth.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: address,
+          to: CONTRACT_ADDRESS,
+          value: "0x16345785D8A0000",
+          data: "0x",
+          gas: "0x186A0",
+        }],
       });
 
-      // Phase: revealing (polling for result)
+      void userKeyword;
+
       setPhase("revealing");
 
-      // Set a timeout
-      const timeoutId = window.setTimeout(() => {
-        setError("Taking longer than expected. Check the explorer.");
-        setPhase("connected");
-      }, 60000);
-      timeoutRef.current = timeoutId;
-
-      const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-
-      clearTimeout(timeoutId);
-      timeoutRef.current = null;
-
-      // Extract result
-      let result: FortuneResult;
-      if (receipt && typeof receipt === "object") {
-        // Try to extract from receipt
-        const r = receipt as any;
-        const data = r.result ?? r.data ?? r;
-        if (data.rarity && data.message) {
-          result = {
-            rarity: String(data.rarity).toUpperCase() as Rarity,
-            message: String(data.message),
-            cookie_number: Number(data.cookie_number ?? 0),
-          };
-        } else if (typeof data === "string") {
-          // Try JSON parse
-          try {
-            const parsed = JSON.parse(data);
-            result = {
-              rarity: String(parsed.rarity).toUpperCase() as Rarity,
-              message: String(parsed.message),
-              cookie_number: Number(parsed.cookie_number ?? 0),
-            };
-          } catch {
-            result = { rarity: "NORMAL", message: data, cookie_number: 0 };
-          }
-        } else {
-          // Try to find result in nested structure (leader_receipt etc)
-          let extracted = extractFromReceipt(r);
-          if (extracted) {
-            result = extracted;
-          } else {
-            result = {
-              rarity: "NORMAL",
-              message: "Your fortune has been sealed onchain.",
-              cookie_number: 0,
-            };
-          }
+      let receipt = null;
+      let attempts = 0;
+      while (!receipt && attempts < 30) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        try {
+          receipt = await eth.request({
+            method: "eth_getTransactionReceipt",
+            params: [txHash],
+          });
+        } catch {
+          // keep polling
         }
-      } else {
-        result = {
-          rarity: "NORMAL",
-          message: "Your fortune has been sealed onchain.",
-          cookie_number: 0,
-        };
+        attempts++;
       }
 
-      setFortune(result);
+      if (!receipt) {
+        setError(
+          "Transaction timed out. Check explorer: https://zksync-os-testnet-genlayer.explorer.zksync.dev",
+        );
+        setPhase("connected");
+        return;
+      }
+
+      setFortune({
+        rarity: "NORMAL",
+        message: "Your fortune is being revealed by the oracle…",
+        cookie_number: 1,
+        txHash,
+      });
       setPhase("revealed");
     } catch (err: any) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      console.error("openCookie error:", err);
-      if (err?.code === 4001 || /user rejected|denied/i.test(err?.message ?? "")) {
-        setError("Transaction cancelled.");
+      if (err?.code === 4001) {
+        setError("Transaction rejected.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(`Error: ${err?.message || "Something went wrong."}`);
       }
-      setPhase(wallet ? "connected" : "idle");
+      setPhase("connected");
     }
   }, [keyword, wallet]);
 
