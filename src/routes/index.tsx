@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
@@ -32,7 +32,7 @@ interface FortuneResult {
 }
 
 const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
-const STUDIO_CHAIN_ID_HEX = "0xF22F"; // 61999
+const STUDIO_CHAIN_ID_HEX = "0xF22F";
 
 const STUDIO_CHAIN_PARAMS = {
   chainId: STUDIO_CHAIN_ID_HEX,
@@ -45,42 +45,21 @@ const STUDIO_CHAIN_PARAMS = {
 async function ensureStudioNetwork() {
   const eth = getEthereum();
   if (!eth) throw new Error("No wallet found");
-
   try {
     const currentChainId = await eth.request({ method: "eth_chainId" });
-    console.log("Current chain ID:", currentChainId);
-
     if (currentChainId.toLowerCase() === "0xf22f") return;
-
     try {
-      await eth.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0xF22F" }],
-      });
+      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
       return;
-    } catch (switchErr: any) {
-      console.log("Switch error code:", switchErr.code, switchErr.message);
-    }
-
+    } catch {}
     try {
-      await eth.request({
-        method: "wallet_addEthereumChain",
-        params: [STUDIO_CHAIN_PARAMS],
-      });
+      await eth.request({ method: "wallet_addEthereumChain", params: [STUDIO_CHAIN_PARAMS] });
       return;
-    } catch (addErr: any) {
-      console.log("Add error:", addErr.code, addErr.message);
-    }
-
+    } catch {}
     const finalChainId = await eth.request({ method: "eth_chainId" });
     if (finalChainId.toLowerCase() === "0xf22f") return;
-
-    throw new Error(
-      "Please add GenLayer Studio network manually:\nRPC: https://studio.genlayer.com/api\nChain ID: 61999\nSymbol: GEN",
-    );
-  } catch (err) {
-    throw err;
-  }
+    throw new Error("Please add GenLayer Studio network manually:\nRPC: https://studio.genlayer.com/api\nChain ID: 61999\nSymbol: GEN");
+  } catch (err) { throw err; }
 }
 
 function getEthereum(): any {
@@ -92,18 +71,11 @@ function getEthereum(): any {
 function CookieVisual({ phase }: { phase: Phase }) {
   if (phase === "revealing") return null;
   const isConnected = phase === "connected";
-
   return (
     <div className={phase === "cracking" ? "cookie-cracking" : "cookie-breathe"}>
       <div className="cookie-specular" />
       <div className={`cookie-inner-glow ${isConnected ? "cookie-inner-glow-active" : ""}`} />
-      <img
-        src={silverCookieImg}
-        alt="Fortune cookie"
-        width={240}
-        height={240}
-        style={{ position: "relative", zIndex: 1 }}
-      />
+      <img src={silverCookieImg} alt="Fortune cookie" width={240} height={240} style={{ position: "relative", zIndex: 1 }} />
       <div className="cookie-shadow" />
     </div>
   );
@@ -122,89 +94,38 @@ const PARTICLES = Array.from({ length: 30 }).map((_, i) => ({
 function RevealingState() {
   return (
     <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* Cookie + bloom container */}
       <div style={{ position: "relative", width: 380, height: 380, marginBottom: 32 }}>
-
-        {/* Outer oracle ring — very slow rotation */}
-        <svg viewBox="0 0 380 380" className="oracle-ring-outer" style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-        }}>
+        <svg viewBox="0 0 380 380" className="oracle-ring-outer" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
           <circle cx="190" cy="190" r="180" fill="none" stroke="rgba(180,175,165,0.12)" strokeWidth="0.5" />
           <circle cx="190" cy="190" r="165" fill="none" stroke="rgba(180,175,165,0.08)" strokeWidth="0.3" strokeDasharray="4 8" />
           {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
-            <line key={deg} x1="190" y1="12" x2="190" y2="24" stroke="rgba(180,175,165,0.1)" strokeWidth="0.6" strokeLinecap="round"
-              transform={`rotate(${deg} 190 190)`} />
+            <line key={deg} x1="190" y1="12" x2="190" y2="24" stroke="rgba(180,175,165,0.1)" strokeWidth="0.6" strokeLinecap="round" transform={`rotate(${deg} 190 190)`} />
           ))}
         </svg>
-
-        {/* Inner oracle ring — counter rotation */}
-        <svg viewBox="0 0 380 380" className="oracle-ring-inner" style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-        }}>
+        <svg viewBox="0 0 380 380" className="oracle-ring-inner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
           <circle cx="190" cy="190" r="140" fill="none" stroke="rgba(190,185,175,0.08)" strokeWidth="0.4" strokeDasharray="2 6" />
           <circle cx="190" cy="190" r="120" fill="none" stroke="rgba(190,185,175,0.05)" strokeWidth="0.3" />
         </svg>
-
-        {/* Bloom — strong warm glow from center */}
         <div className="revealing-bloom" />
-
-        {/* Soft light rays expanding outward */}
         <div className="revealing-rays" />
-
-        {/* Drifting particles */}
         {PARTICLES.map((p, i) => (
-          <span key={i} className="revealing-particle" style={{
-            '--p-angle': `${p.angle}rad`,
-            '--p-delay': `${p.delay}s`,
-            '--p-duration': `${p.duration}s`,
-            '--p-size': `${p.size}px`,
-            '--p-opacity': p.opacity,
-          } as React.CSSProperties} />
+          <span key={i} className="revealing-particle" style={{ '--p-angle': `${p.angle}rad`, '--p-delay': `${p.delay}s`, '--p-duration': `${p.duration}s`, '--p-size': `${p.size}px`, '--p-opacity': p.opacity } as React.CSSProperties} />
         ))}
-
-        {/* The cookie */}
-        <img
-          src={silverCookieImg}
-          alt="Cookie opening"
-          width={210}
-          height={210}
-          style={{
-            position: "absolute",
-            left: "50%", top: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 2,
-          }}
-          className="revealing-cookie"
-        />
+        <img src={silverCookieImg} alt="Cookie opening" width={210} height={210} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 2 }} className="revealing-cookie" />
       </div>
-
-      {/* Oracle text */}
-      <p style={{
-        fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 400,
-        letterSpacing: "0.25em", textTransform: "uppercase" as const,
-        color: "#A8A29E", textAlign: "center",
-        lineHeight: 1.6,
-      }}>
+      <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 400, letterSpacing: "0.25em", textTransform: "uppercase", color: "#A8A29E", textAlign: "center", lineHeight: 1.6 }}>
         The oracle is consulting the validators…
       </p>
-
-      {/* Decorative line */}
       <div style={{ width: 24, height: 1, background: "rgba(180,175,165,0.25)", margin: "16px auto 12px" }} />
-
-      <p style={{
-        fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 400,
-        color: "#C5C0B8", letterSpacing: "0.2em", textTransform: "uppercase" as const,
-      }}>
+      <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 9, fontWeight: 400, color: "#C5C0B8", letterSpacing: "0.2em", textTransform: "uppercase" }}>
         30–60 seconds
       </p>
     </div>
   );
 }
 
-/* ─── Fortune Result — Premium Oracle Output ─── */
-const RARITY_CONFIG: Record<Rarity, {
-  labelColor: string; textColor: string; cssClass: string;
-}> = {
+/* ─── Rarity Config ─── */
+const RARITY_CONFIG: Record<Rarity, { labelColor: string; textColor: string; cssClass: string }> = {
   LEGENDARY: { labelColor: "#B8960A", textColor: "#3A3226", cssClass: "rarity-legendary" },
   UNIQUE:    { labelColor: "#8A7050", textColor: "#2E2A24", cssClass: "rarity-unique" },
   RARE:      { labelColor: "#9A8A70", textColor: "#3A3530", cssClass: "rarity-rare" },
@@ -213,151 +134,151 @@ const RARITY_CONFIG: Record<Rarity, {
 
 const LEGENDARY_PARTICLES = Array.from({ length: 24 }).map((_, i) => ({
   angle: (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3,
-  size: 1 + Math.random() * 2,
-  delay: Math.random() * 5,
-  duration: 4 + Math.random() * 4,
-  opacity: 0.2 + Math.random() * 0.4,
+  size: 1 + Math.random() * 2, delay: Math.random() * 5, duration: 4 + Math.random() * 4, opacity: 0.2 + Math.random() * 0.4,
 }));
-
 const UNIQUE_PARTICLES = Array.from({ length: 14 }).map((_, i) => ({
-  angle: (i / 14) * Math.PI * 2,
-  size: 1 + Math.random() * 1.5,
-  delay: Math.random() * 4,
-  duration: 5 + Math.random() * 3,
-  opacity: 0.15 + Math.random() * 0.25,
+  angle: (i / 14) * Math.PI * 2, size: 1 + Math.random() * 1.5, delay: Math.random() * 4, duration: 5 + Math.random() * 3, opacity: 0.15 + Math.random() * 0.25,
+}));
+const RARE_PARTICLES = Array.from({ length: 8 }).map((_, i) => ({
+  angle: (i / 8) * Math.PI * 2, size: 1 + Math.random() * 1, delay: Math.random() * 3, duration: 6 + Math.random() * 3, opacity: 0.1 + Math.random() * 0.15,
+}));
+const NORMAL_PARTICLES = Array.from({ length: 4 }).map((_, i) => ({
+  angle: (i / 4) * Math.PI * 2, size: 0.8 + Math.random() * 0.8, delay: Math.random() * 2, duration: 7 + Math.random() * 3, opacity: 0.08 + Math.random() * 0.1,
 }));
 
-function FortuneCard({
-  result,
-  onOpenAnother,
-}: {
-  result: FortuneResult;
-  onOpenAnother: () => void;
-}) {
+/* ─── Cinematic Fortune Reveal ─── */
+type RevealStep = "freeze" | "flash" | "converge" | "card" | "rarity" | "fortune" | "settled";
+
+function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onOpenAnother: () => void }) {
+  const [step, setStep] = useState<RevealStep>("freeze");
+  const [showButton, setShowButton] = useState(false);
   const cfg = RARITY_CONFIG[result.rarity] ?? RARITY_CONFIG.NORMAL;
   const rarity = result.rarity;
+  const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    const timers = timerRefs.current;
+    // Step 1: Freeze (300ms)
+    timers.push(setTimeout(() => setStep("flash"), 300));
+    // Step 2: Oracle flash (150ms)
+    timers.push(setTimeout(() => setStep("converge"), 450));
+    // Step 3: Energy convergence (700ms)
+    timers.push(setTimeout(() => setStep("card"), 1150));
+    // Step 4: Card materializes (500ms)
+    timers.push(setTimeout(() => setStep("rarity"), 1650));
+    // Step 5: Rarity label (300ms)
+    timers.push(setTimeout(() => setStep("fortune"), 1950));
+    // Step 6: Fortune text (600ms)
+    timers.push(setTimeout(() => setStep("settled"), 2550));
+    // Step 9: Button (delayed 600ms after settle)
+    timers.push(setTimeout(() => setShowButton(true), 3150));
+
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  const particles = rarity === "LEGENDARY" ? LEGENDARY_PARTICLES
+    : rarity === "UNIQUE" ? UNIQUE_PARTICLES
+    : rarity === "RARE" ? RARE_PARTICLES
+    : NORMAL_PARTICLES;
+
+  const showCard = step === "card" || step === "rarity" || step === "fortune" || step === "settled";
+  const showRarity = step === "rarity" || step === "fortune" || step === "settled";
+  const showFortune = step === "fortune" || step === "settled";
 
   return (
-    <div className={`fortune-reveal ${cfg.cssClass}`} style={{
-      position: "relative",
-      display: "flex", flexDirection: "column", alignItems: "center",
-      width: "100%", maxWidth: 400,
-      minHeight: 360,
-    }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 440, position: "relative" }}>
 
-      {/* LEGENDARY: flash + rays + breathing glow */}
-      {rarity === "LEGENDARY" && (
-        <>
-          <div className="legendary-flash" />
-          <div className="legendary-glow-core" />
-          <div className="legendary-glow-outer" />
-          <div className="legendary-rays" />
-          {LEGENDARY_PARTICLES.map((p, i) => (
-            <span key={i} className="legendary-particle" style={{
-              '--p-angle': `${p.angle}rad`,
-              '--p-delay': `${p.delay}s`,
-              '--p-duration': `${p.duration}s`,
-              '--p-size': `${p.size}px`,
+      {/* Step 1: Freeze — subtle vignette */}
+      <div className={`reveal-vignette ${step !== "freeze" ? "reveal-vignette-fade" : ""}`} />
+
+      {/* Step 2: Oracle flash */}
+      {(step === "flash" || step === "converge") && (
+        <div className={`oracle-flash ${rarity === "LEGENDARY" ? "oracle-flash-strong" : ""}`} />
+      )}
+
+      {/* Step 3: Energy convergence — layered glow */}
+      {step !== "freeze" && step !== "flash" && (
+        <div className={`energy-convergence ${cfg.cssClass}-energy`}>
+          {/* Inner core */}
+          <div className="energy-core" />
+          {/* Mid bloom */}
+          <div className={`energy-mid ${rarity === "LEGENDARY" ? "energy-mid-legendary" : rarity === "UNIQUE" ? "energy-mid-unique" : ""}`} />
+          {/* Outer halo */}
+          <div className={`energy-outer ${rarity === "LEGENDARY" ? "energy-outer-legendary" : ""}`} />
+
+          {/* Legendary rays */}
+          {rarity === "LEGENDARY" && <div className="legendary-reveal-rays" />}
+
+          {/* Particles — density by rarity */}
+          {particles.map((p, i) => (
+            <span key={i} className="reveal-particle" style={{
+              '--p-angle': `${p.angle}rad`, '--p-delay': `${p.delay}s`,
+              '--p-duration': `${p.duration}s`, '--p-size': `${p.size}px`,
               '--p-opacity': p.opacity,
             } as React.CSSProperties} />
           ))}
-        </>
+        </div>
       )}
 
-      {/* UNIQUE: bloom + particles */}
-      {rarity === "UNIQUE" && (
-        <>
-          <div className="unique-bloom" />
-          {UNIQUE_PARTICLES.map((p, i) => (
-            <span key={i} className="unique-particle" style={{
-              '--p-angle': `${p.angle}rad`,
-              '--p-delay': `${p.delay}s`,
-              '--p-duration': `${p.duration}s`,
-              '--p-size': `${p.size}px`,
-              '--p-opacity': p.opacity,
-            } as React.CSSProperties} />
-          ))}
-        </>
-      )}
+      {/* Step 4–6: Card */}
+      <div className={`reveal-card-wrapper ${showCard ? "reveal-card-visible" : "reveal-card-hidden"} ${cfg.cssClass}`}
+        style={{ position: "relative", zIndex: 5, width: "100%", maxWidth: 400 }}>
 
-      {/* RARE: warm halo + shimmer */}
-      {rarity === "RARE" && (
-        <div className="rare-halo" />
-      )}
-
-      {/* Glass card surface */}
-      <div style={{
-        position: "relative", zIndex: 2,
-        background: "rgba(255,255,255,0.55)",
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
-        border: "1px solid rgba(255,255,255,0.6)",
-        borderRadius: 24,
-        padding: "52px 44px 40px",
-        textAlign: "center",
-        width: "100%",
-        minHeight: 280,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        boxShadow: "0 4px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)",
-      }}>
-
-        {/* Rarity label */}
-        <p style={{
-          fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 500,
-          letterSpacing: "0.35em", textTransform: "uppercase" as const,
-          color: cfg.labelColor, marginBottom: 24,
+        {/* Glass card */}
+        <div className="reveal-glass-card" style={{
+          padding: "52px 44px 40px",
+          textAlign: "center", width: "100%", minHeight: 280,
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
         }}>
-          {result.rarity}
-        </p>
 
-        {/* Fortune text */}
-        <p className={`fortune-text ${rarity === "RARE" ? "rare-shimmer-text" : ""}`} style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: 28, fontWeight: 300, fontStyle: "italic",
-          lineHeight: 1.55, color: cfg.textColor,
-        }}>
-          &ldquo;{result.message}&rdquo;
-        </p>
-
-        {/* Cookie number + explorer link */}
-        <div style={{ marginTop: 32 }}>
-          <p style={{
-            fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300,
-            color: "#C0BBB3",
+          {/* Rarity label — step 5 */}
+          <p className={`reveal-rarity-label ${showRarity ? "reveal-rarity-visible" : "reveal-rarity-hidden"}`} style={{
+            fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 500,
+            letterSpacing: "0.35em", textTransform: "uppercase",
+            color: cfg.labelColor, marginBottom: 24,
           }}>
-            Cookie #{result.cookie_number}
+            {result.rarity}
           </p>
-          {result.txHash && (
-            <a
-              href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{
-                display: "inline-block", marginTop: 6,
-                fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300,
-                color: "#B5B0A8", textDecoration: "none", transition: "color 0.2s",
-              }}
-              onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
-              onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}
-            >
-              View on Explorer ↗
-            </a>
-          )}
+
+          {/* Fortune text — step 6 */}
+          <p className={`reveal-fortune-text ${showFortune ? "reveal-fortune-visible" : "reveal-fortune-hidden"} ${rarity === "RARE" ? "rare-shimmer-text" : ""}`}
+            style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: 28, fontWeight: 300, fontStyle: "italic",
+              lineHeight: 1.55, color: cfg.textColor,
+            }}>
+            &ldquo;{result.message}&rdquo;
+          </p>
+
+          {/* Cookie number + explorer */}
+          <div className={`reveal-meta ${showFortune ? "reveal-meta-visible" : "reveal-meta-hidden"}`} style={{ marginTop: 32 }}>
+            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#C0BBB3" }}>
+              Cookie #{result.cookie_number}
+            </p>
+            {result.txHash && (
+              <a href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-block", marginTop: 6, fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#B5B0A8", textDecoration: "none", transition: "color 0.2s" }}
+                onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}>
+                View on Explorer ↗
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
-      <button
-        onClick={onOpenAnother}
-        className="btn-outline"
-        style={{ marginTop: 24, position: "relative", zIndex: 2 }}
-      >
-        Open Another
-      </button>
+      {/* Step 9: Button — delayed */}
+      <div className={`reveal-button-wrapper ${showButton ? "reveal-button-visible" : "reveal-button-hidden"}`}>
+        <button onClick={onOpenAnother} className="btn-pill" style={{ marginTop: 24 }}>
+          Open Another
+        </button>
+      </div>
     </div>
   );
 }
 
-/* ─── Main App (all logic unchanged) ─── */
+/* ─── Main App ─── */
 function FortuneCookieApp() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [wallet, setWallet] = useState<string | null>(null);
@@ -368,32 +289,13 @@ function FortuneCookieApp() {
   const connectWallet = useCallback(async () => {
     setError(null);
     const eth = getEthereum();
-    if (!eth) {
-      setError("Please install MetaMask to continue.");
-      return;
-    }
-
+    if (!eth) { setError("Please install MetaMask to continue."); return; }
     let accounts: string[];
-    try {
-      accounts = await eth.request({ method: "eth_requestAccounts" });
-    } catch {
-      setError("Wallet connection rejected.");
-      return;
-    }
+    try { accounts = await eth.request({ method: "eth_requestAccounts" }); } catch { setError("Wallet connection rejected."); return; }
     const addr = accounts?.[0];
-    if (!addr) {
-      setError("No account found.");
-      return;
-    }
+    if (!addr) { setError("No account found."); return; }
     setWallet(addr);
-
-    try {
-      await ensureStudioNetwork();
-    } catch {
-      setError("Could not switch to GenLayer Studio network. Please switch manually.");
-      return;
-    }
-
+    try { await ensureStudioNetwork(); } catch { setError("Could not switch to GenLayer Studio network. Please switch manually."); return; }
     setPhase("connected");
   }, []);
 
@@ -401,216 +303,96 @@ function FortuneCookieApp() {
     setError("");
     setFortune(null);
     setPhase("cracking");
-
     try {
       const eth = getEthereum();
-      if (!eth) {
-        setError("Please install MetaMask to continue.");
-        setPhase(wallet ? "connected" : "idle");
-        return;
-      }
-
+      if (!eth) { setError("Please install MetaMask to continue."); setPhase(wallet ? "connected" : "idle"); return; }
       const userKeyword = keyword.trim();
       const address = wallet;
-
-      if (!address) {
-        setError("Wallet not connected.");
-        setPhase("idle");
-        return;
-      }
-
+      if (!address) { setError("Wallet not connected."); setPhase("idle"); return; }
       await ensureStudioNetwork();
-
-      const client = createClient({
-        chain: studionet,
-        account: address as `0x${string}`,
-      });
-
-      console.log("genlayer-js version: 1.1.7");
-      console.log("Chain:", JSON.stringify(studionet.name));
-      console.log("Calling writeContract with keyword:", userKeyword);
-
+      const client = createClient({ chain: studionet, account: address as `0x${string}` });
       const txHash = await client.writeContract({
-        address: CONTRACT_ADDRESS as `0x${string}`,
-        functionName: "open_cookie",
-        args: [userKeyword],
-        value: 100000000000000000n,
+        address: CONTRACT_ADDRESS as `0x${string}`, functionName: "open_cookie",
+        args: [userKeyword], value: 100000000000000000n,
       });
-
-      console.log("GenLayer tx hash:", txHash);
       setPhase("revealing");
-
-      const receipt: any = await client.waitForTransactionReceipt({
-        hash: txHash,
-        status: TransactionStatus.FINALIZED,
-        retries: 60,
-      });
-
-      console.log("Full receipt:", JSON.stringify(receipt, null, 2));
+      const receipt: any = await client.waitForTransactionReceipt({ hash: txHash, status: TransactionStatus.FINALIZED, retries: 60 });
 
       const parseReadable = (raw: string) => {
-        const fixed = raw
-          .replace(/(\d)"(?=[a-zA-Z])/g, '$1,"')
-          .replace(/"(\s*)"(?=[a-zA-Z])/g, '","')
-          .replace(/}(\s*)"(?=[a-zA-Z])/g, '},"');
-        console.log("Fixed:", fixed);
+        const fixed = raw.replace(/(\d)"(?=[a-zA-Z])/g, '$1,"').replace(/"(\s*)"(?=[a-zA-Z])/g, '","').replace(/}(\s*)"(?=[a-zA-Z])/g, '},"');
         return JSON.parse(fixed);
       };
-
       const leaderReceipt = receipt?.consensus_data?.leader_receipt?.[0];
       const readable = leaderReceipt?.result?.payload?.readable;
-
       if (readable) {
         try {
           const parsed = parseReadable(readable);
-          if (parsed?.rarity && parsed?.message) {
-            setFortune({
-              rarity: parsed.rarity as Rarity,
-              message: parsed.message,
-              cookie_number: parsed.cookie_number ?? 1,
-              txHash,
-            });
-            setPhase("revealed");
-            return;
-          }
-        } catch (e) {
-          console.error("Parse failed even after fix:", e);
-          console.log("Raw readable was:", readable);
-        }
+          if (parsed?.rarity && parsed?.message) { setFortune({ rarity: parsed.rarity as Rarity, message: parsed.message, cookie_number: parsed.cookie_number ?? 1, txHash }); setPhase("revealed"); return; }
+        } catch {}
       }
-
       const eqOutput = leaderReceipt?.eq_outputs?.["0"]?.payload?.readable;
       if (eqOutput) {
         try {
           const parsed2 = parseReadable(eqOutput);
-          if (parsed2?.rarity && parsed2?.message) {
-            setFortune({
-              rarity: parsed2.rarity as Rarity,
-              message: parsed2.message,
-              cookie_number: 1,
-              txHash,
-            });
-            setPhase("revealed");
-            return;
-          }
-        } catch (e) {
-          console.error("eq_outputs parse failed:", e);
-          console.log("Raw eq_output was:", eqOutput);
-        }
+          if (parsed2?.rarity && parsed2?.message) { setFortune({ rarity: parsed2.rarity as Rarity, message: parsed2.message, cookie_number: 1, txHash }); setPhase("revealed"); return; }
+        } catch {}
       }
-
       setError("Fortune confirmed onchain but could not display. Check explorer for your result.");
       setPhase("connected");
     } catch (err: any) {
-      console.error("Full error:", err);
-      if (err?.code === 4001) {
-        setError("Transaction rejected.");
-      } else {
-        setError(err?.message || "Something went wrong.");
-      }
+      if (err?.code === 4001) { setError("Transaction rejected."); } else { setError(err?.message || "Something went wrong."); }
       setPhase("connected");
     }
   }, [keyword, wallet]);
 
-  const goBackToConnected = useCallback(() => {
-    setFortune(null);
-    setError(null);
-    setPhase("connected");
-  }, []);
-
-  const truncatedWallet = wallet
-    ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}`
-    : "";
+  const goBackToConnected = useCallback(() => { setFortune(null); setError(null); setPhase("connected"); }, []);
 
   return (
     <main style={{
       background: "radial-gradient(ellipse at 50% 45%, rgba(245,244,240,1) 0%, #FAFAF8 60%, #F5F4F0 100%)",
-      minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 24px",
-      position: "relative", overflow: "hidden",
+      minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      padding: "64px 24px", position: "relative", overflow: "hidden",
     }}>
       <h1 className="sr-only">Fortune Cookie</h1>
 
-      {/* Faint oracle circle pattern */}
-      {(phase === "idle" || phase === "connected") && (
-        <div className="oracle-pattern" />
-      )}
+      {(phase === "idle" || phase === "connected") && <div className="oracle-pattern" />}
 
-      {/* Cookie visual — hidden during revealing (RevealingState has its own) */}
       {phase !== "revealed" && phase !== "revealing" && (
         <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
           <CookieVisual phase={phase} />
         </div>
       )}
 
-      {/* Keyword input */}
       {phase === "connected" && (
-        <input
-          type="text"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Focus your intention…"
-          className="animate-fadeIn"
+        <input type="text" value={keyword} onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Focus your intention…" className="animate-fadeIn"
           style={{
-            width: 240, textAlign: "center",
-            fontFamily: "'Outfit', sans-serif",
-            fontSize: 13, fontWeight: 300,
-            color: "#1A1A1A", background: "transparent",
-            border: "none",
-            borderBottom: "1px solid rgba(0,0,0,0.08)",
-            padding: "8px 0", marginBottom: 36, outline: "none",
-            letterSpacing: "0.03em",
-            opacity: 0.7,
+            width: 240, textAlign: "center", fontFamily: "'Outfit', sans-serif",
+            fontSize: 13, fontWeight: 300, color: "#1A1A1A", background: "transparent",
+            border: "none", borderBottom: "1px solid rgba(0,0,0,0.08)",
+            padding: "8px 0", marginBottom: 36, outline: "none", letterSpacing: "0.03em", opacity: 0.7,
           }}
         />
       )}
 
-      {/* Actions */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 320 }}>
-        {phase === "idle" && (
-          <button onClick={connectWallet} className="btn-pill animate-fadeIn">
-            Connect Wallet
-          </button>
-        )}
-
+        {phase === "idle" && <button onClick={connectWallet} className="btn-pill animate-fadeIn">Connect Wallet</button>}
         {phase === "connected" && (
           <>
-            <button onClick={openCookie} className="btn-pill animate-fadeIn">
-              Open Your Fortune
-            </button>
-            <p className="animate-fadeIn" style={{
-              fontFamily: "'Outfit', sans-serif",
-              fontSize: 10, fontWeight: 300,
-              color: "#C0BBB3", marginTop: 12,
-              letterSpacing: "0.1em",
-            }}>
-              0.1 GEN
-            </p>
+            <button onClick={openCookie} className="btn-pill animate-fadeIn">Open Your Fortune</button>
+            <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#C0BBB3", marginTop: 12, letterSpacing: "0.1em" }}>0.1 GEN</p>
           </>
         )}
-
-        {phase === "cracking" && (
-          <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 300, color: "#B0AAA0" }}>
-            Waiting for signature…
-          </p>
-        )}
-
+        {phase === "cracking" && <p className="animate-fadeIn" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 300, color: "#B0AAA0" }}>Waiting for signature…</p>}
         {phase === "revealing" && <RevealingState />}
       </div>
 
-      {/* Fortune result */}
       {phase === "revealed" && fortune && (
-        <FortuneCard result={fortune} onOpenAnother={goBackToConnected} />
+        <CinematicReveal result={fortune} onOpenAnother={goBackToConnected} />
       )}
 
-      {/* Error */}
       {error && (
-        <pre style={{
-          color: "#B8860B",
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: 13, fontWeight: 300,
-          whiteSpace: "pre-wrap",
-          margin: "16px 0 0", textAlign: "center",
-        }}>
+        <pre style={{ color: "#B8860B", fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 300, whiteSpace: "pre-wrap", margin: "16px 0 0", textAlign: "center" }}>
           {error}
         </pre>
       )}
