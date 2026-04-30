@@ -138,6 +138,31 @@
 
 /* ─── Buttons ─── */
 @layer utilities {
+  .btn-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    border-radius: 100px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-pill:hover {
+    transform: translateY(-1px);
+    opacity: 0.85;
+  }
+  .btn-pill:active {
+    transform: translateY(0) scale(0.97);
+    transition-duration: 0.08s;
+  }
+
   .btn-primary {
     display: block;
     width: 100%;
