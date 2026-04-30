@@ -91,13 +91,12 @@ function getEthereum(): any {
 /* ─── Cookie Visual ─── */
 function CookieVisual({ phase }: { phase: Phase }) {
   if (phase === "revealing") return null;
+  const isConnected = phase === "connected";
 
   return (
     <div className={phase === "cracking" ? "cookie-cracking" : "cookie-breathe"}>
-      {/* Specular highlight overlay */}
       <div className="cookie-specular" />
-      {/* Inner glow pulse */}
-      <div className="cookie-inner-glow" />
+      <div className={`cookie-inner-glow ${isConnected ? "cookie-inner-glow-active" : ""}`} />
       <img
         src={silverCookieImg}
         alt="Fortune cookie"
@@ -105,7 +104,6 @@ function CookieVisual({ phase }: { phase: Phase }) {
         height={240}
         style={{ position: "relative", zIndex: 1 }}
       />
-      {/* Soft shadow underneath */}
       <div className="cookie-shadow" />
     </div>
   );
