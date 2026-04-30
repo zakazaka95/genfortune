@@ -4,6 +4,9 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 
+// @ts-ignore — patch BigInt serialization for genlayer-js internals
+BigInt.prototype.toJSON = function () { return this.toString(); };
+
 export const Route = createFileRoute("/")({
   component: FortuneCookieApp,
   head: () => ({
@@ -275,7 +278,7 @@ function FortuneCookieApp() {
         address: CONTRACT_ADDRESS as `0x${string}`,
         functionName: "open_cookie",
         args: [userKeyword],
-        value: BigInt("100000000000000000"), // 0.1 GEN
+        value: 100000000000000000n, // 0.1 GEN
       });
 
       console.log("GenLayer tx hash:", txHash);
