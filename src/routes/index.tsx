@@ -324,21 +324,12 @@ function InsufficientBalancePrompt({ balance, onRecheck }: { balance: bigint; on
     <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: 340, textAlign: "center" }}>
       <p style={textStyle(15, 400, "#3A3530", { marginBottom: 8 })}>You need GEN to open a fortune</p>
       <p style={textStyle(11, 300, "#A8A29E", { marginBottom: 28, lineHeight: 1.6 })}>
-        Get free GEN from the GenLayer Studio faucet — instant and free
+        No GEN? Grab some free from the faucet — instant and free
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32, width: "100%" }}>
-        {["Go to studio.genlayer.com", "Connect your wallet", "Click the faucet button next to your address", "Come back and click the button below"].map((step, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-            <span style={textStyle(10, 500, "#C0BBB3", { minWidth: 16 })}>{i + 1}</span>
-            <span style={textStyle(11, 300, "#78716C", { textAlign: "left", lineHeight: 1.5 })}>{step}</span>
-          </div>
-        ))}
-      </div>
-
-      <a href="https://studio.genlayer.com" target="_blank" rel="noopener noreferrer"
+      <a href="https://testnet-faucet.genlayer.foundation" target="_blank" rel="noopener noreferrer"
         className="btn-pill" style={{ textDecoration: "none", marginBottom: 12, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-        Open GenLayer Studio →
+        Open Faucet →
       </a>
 
       <button onClick={handleRecheck} disabled={checking}
