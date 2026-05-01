@@ -266,7 +266,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           {result.txHash && (
             <>
               <span className="reveal-meta-dot">·</span>
-              <a href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="reveal-meta-link" style={{ color: cfg.metaColor }}>
+              <a href={`https://explorer-bradbury.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="reveal-meta-link" style={{ color: cfg.metaColor }}>
                 View on Explorer ↗
               </a>
             </>
@@ -375,7 +375,7 @@ function FortuneCookieApp() {
     const eth = getEthereum();
     if (!eth || !wallet) return;
     const handleChainChange = (chainId: string) => {
-      if (chainId.toLowerCase() !== "0xf22f") {
+      if (chainId.toLowerCase() !== "0x107d") {
         setWrongNetwork(true);
       } else {
         setWrongNetwork(false);
@@ -397,14 +397,14 @@ function FortuneCookieApp() {
 
     // Silently switch to GenLayer Studio network
     const chainId = await eth.request({ method: "eth_chainId" });
-    if (chainId.toLowerCase() === "0xf22f") {
+    if (chainId.toLowerCase() === "0x107d") {
       const bal = await fetchBalance(addr);
       setBalance(bal);
       setPhase("connected");
       return;
     }
     try {
-      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
+      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x107D" }] });
       const bal2 = await fetchBalance(addr);
       setBalance(bal2);
       setPhase("connected");
@@ -417,13 +417,13 @@ function FortuneCookieApp() {
           setBalance(bal3);
           setPhase("connected");
           return;
-        } catch { setError("Could not add GenLayer Studio network. Please add it manually."); return; }
+        } catch { setError("Could not add GenLayer Bradbury Testnet. Please add it manually."); return; }
       }
       if (err.code === 4001) {
-        setError("Please switch to GenLayer Studio network to continue.");
+        setError("Please switch to GenLayer Bradbury Testnet to continue.");
         return;
       }
-      setError("Could not switch network automatically. Please switch to GenLayer Studio (Chain ID: 61999) manually.");
+      setError("Could not switch network automatically. Please switch to GenLayer Bradbury Testnet (Chain ID: 4221) manually.");
     }
   }, []);
 
@@ -438,7 +438,7 @@ function FortuneCookieApp() {
       const address = wallet;
       if (!address) { setError("Wallet not connected."); setPhase("idle"); return; }
       await ensureStudioNetwork();
-      const client = createClient({ chain: studionet, account: address as `0x${string}` });
+      const client = createClient({ chain: testnetBradbury, account: address as `0x${string}` });
       const txHash = await client.writeContract({
         address: CONTRACT_ADDRESS as `0x${string}`, functionName: "open_cookie",
         args: [userKeyword], value: 100000000000000000n,
