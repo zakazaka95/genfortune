@@ -124,28 +124,6 @@ function RevealingState() {
   );
 }
 
-/* ─── Rarity Config ─── */
-const RARITY_CONFIG: Record<Rarity, { labelColor: string; textColor: string; cssClass: string }> = {
-  LEGENDARY: { labelColor: "#B8960A", textColor: "#3A3226", cssClass: "rarity-legendary" },
-  UNIQUE:    { labelColor: "#8A7050", textColor: "#2E2A24", cssClass: "rarity-unique" },
-  RARE:      { labelColor: "#9A8A70", textColor: "#3A3530", cssClass: "rarity-rare" },
-  NORMAL:    { labelColor: "#B0AAA0", textColor: "#5A5650", cssClass: "rarity-normal" },
-};
-
-const LEGENDARY_PARTICLES = Array.from({ length: 24 }).map((_, i) => ({
-  angle: (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3,
-  size: 1 + Math.random() * 2, delay: Math.random() * 5, duration: 4 + Math.random() * 4, opacity: 0.2 + Math.random() * 0.4,
-}));
-const UNIQUE_PARTICLES = Array.from({ length: 14 }).map((_, i) => ({
-  angle: (i / 14) * Math.PI * 2, size: 1 + Math.random() * 1.5, delay: Math.random() * 4, duration: 5 + Math.random() * 3, opacity: 0.15 + Math.random() * 0.25,
-}));
-const RARE_PARTICLES = Array.from({ length: 8 }).map((_, i) => ({
-  angle: (i / 8) * Math.PI * 2, size: 1 + Math.random() * 1, delay: Math.random() * 3, duration: 6 + Math.random() * 3, opacity: 0.1 + Math.random() * 0.15,
-}));
-const NORMAL_PARTICLES = Array.from({ length: 4 }).map((_, i) => ({
-  angle: (i / 4) * Math.PI * 2, size: 0.8 + Math.random() * 0.8, delay: Math.random() * 2, duration: 7 + Math.random() * 3, opacity: 0.08 + Math.random() * 0.1,
-}));
-
 /* ─── Cinematic Fortune Reveal — Full-screen World ─── */
 type RevealStep = "enter" | "atmosphere" | "rarity" | "fortune" | "meta" | "settled";
 
