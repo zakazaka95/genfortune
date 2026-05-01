@@ -273,6 +273,19 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
         <button onClick={onOpenAnother} className="btn-pill" style={{ marginTop: 24 }}>
           Open Another
         </button>
+        <div style={{ marginTop: 20, textAlign: "center", fontFamily: "'Outfit', sans-serif", fontWeight: 300, fontSize: 11, color: "#9A9A9A" }}>
+          Made by{" "}
+          <a
+            href="https://x.com/ZaksansPG"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#9A9A9A", textDecoration: "none" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
+          >
+            Zaksans
+          </a>
+        </div>
       </div>
     </div>
   );
