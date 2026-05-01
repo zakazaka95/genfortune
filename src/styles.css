@@ -1092,6 +1092,42 @@
 }
 .reveal-cta-normal:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.25); }
 
+/* Share on X — small elegant pill, rarity-tinted */
+.reveal-share {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  transition: all 220ms ease;
+  backdrop-filter: blur(8px);
+}
+.reveal-share-legendary {
+  border: 1px solid rgba(232,185,72,0.55);
+  color: #E8B948;
+  box-shadow: 0 0 18px rgba(232,185,72,0.12);
+}
+.reveal-share-legendary:hover { background: rgba(232,185,72,0.1); border-color: rgba(232,185,72,0.85); }
+.reveal-share-unique {
+  border: 1px solid rgba(200,168,255,0.5);
+  color: #C8A8FF;
+}
+.reveal-share-unique:hover { background: rgba(200,168,255,0.1); border-color: rgba(200,168,255,0.8); }
+.reveal-share-rare {
+  border: 1px solid rgba(127,200,255,0.5);
+  color: #7FC8FF;
+}
+.reveal-share-rare:hover { background: rgba(127,200,255,0.1); border-color: rgba(127,200,255,0.8); }
+.reveal-share-normal {
+  border: 1px solid rgba(0,0,0,0.18);
+  color: #1a1a1a;
+}
+.reveal-share-normal:hover { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.35); }
+
 /* Credit */
 .reveal-credit {
   font-family: 'Outfit', sans-serif;
