@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createClient } from "genlayer-js";
-import { studionet } from "genlayer-js/chains";
+import { testnetBradbury } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
 
@@ -31,15 +31,15 @@ interface FortuneResult {
   txHash?: string;
 }
 
-const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
-const STUDIO_CHAIN_ID_HEX = "0xF22F";
+const CONTRACT_ADDRESS = "0x0A3854EE6ABF22637CdF3F0c879c3d2F92e190d6";
+const STUDIO_CHAIN_ID_HEX = "0x107D";
 
 const STUDIO_CHAIN_PARAMS = {
   chainId: STUDIO_CHAIN_ID_HEX,
-  chainName: "GenLayer Studio",
+  chainName: "GenLayer Bradbury Testnet",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://studio.genlayer.com/api"],
-  blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
+  rpcUrls: ["https://rpc.testnet-chain.genlayer.com"],
+  blockExplorerUrls: ["https://explorer.testnet-chain.genlayer.com"],
 };
 
 async function ensureStudioNetwork() {
@@ -47,9 +47,9 @@ async function ensureStudioNetwork() {
   if (!eth) throw new Error("No wallet found");
   try {
     const currentChainId = await eth.request({ method: "eth_chainId" });
-    if (currentChainId.toLowerCase() === "0xf22f") return;
+    if (currentChainId.toLowerCase() === "0x107d") return;
     try {
-      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
+      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x107D" }] });
       return;
     } catch {}
     try {
@@ -57,8 +57,8 @@ async function ensureStudioNetwork() {
       return;
     } catch {}
     const finalChainId = await eth.request({ method: "eth_chainId" });
-    if (finalChainId.toLowerCase() === "0xf22f") return;
-    throw new Error("Please add GenLayer Studio network manually:\nRPC: https://studio.genlayer.com/api\nChain ID: 61999\nSymbol: GEN");
+    if (finalChainId.toLowerCase() === "0x107d") return;
+    throw new Error("Please add GenLayer Bradbury Testnet manually:\nRPC: https://rpc.testnet-chain.genlayer.com\nChain ID: 4221\nSymbol: GEN");
   } catch (err) { throw err; }
 }
 
