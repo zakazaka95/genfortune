@@ -274,6 +274,15 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
         </div>
 
         <div className={`reveal-actions ${showButtons ? "in" : ""}`}>
+          <button
+            onClick={() => {
+              const text = `The AI gods blessed me with a ${rarity} fortune:\n\n"${result.message}"\n\nPowered by @GenLayer — the only chain where AI runs at consensus layer.\n\nOpen yours 👇\nhttps://genfortune.xyz`;
+              window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+            }}
+            className={`reveal-share reveal-share-${rarity.toLowerCase()}`}
+          >
+            Share on X ✦
+          </button>
           <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-${rarity.toLowerCase()}`}>
             Open Another
           </button>
