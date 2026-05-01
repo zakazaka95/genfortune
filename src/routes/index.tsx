@@ -124,167 +124,163 @@ function RevealingState() {
   );
 }
 
-/* ─── Rarity Config ─── */
-const RARITY_CONFIG: Record<Rarity, { labelColor: string; textColor: string; cssClass: string }> = {
-  LEGENDARY: { labelColor: "#B8960A", textColor: "#3A3226", cssClass: "rarity-legendary" },
-  UNIQUE:    { labelColor: "#8A7050", textColor: "#2E2A24", cssClass: "rarity-unique" },
-  RARE:      { labelColor: "#9A8A70", textColor: "#3A3530", cssClass: "rarity-rare" },
-  NORMAL:    { labelColor: "#B0AAA0", textColor: "#5A5650", cssClass: "rarity-normal" },
+/* ─── Cinematic Fortune Reveal — Full-screen World ─── */
+type RevealStep = "enter" | "atmosphere" | "rarity" | "fortune" | "meta" | "settled";
+
+const RARITY_WORLDS: Record<Rarity, {
+  worldClass: string;
+  rarityColor: string;
+  textColor: string;
+  metaColor: string;
+  rarityLetterSpacing: string;
+  particleCount: number;
+  starCount: number;
+  rayCount: number;
+}> = {
+  LEGENDARY: { worldClass: "world-legendary", rarityColor: "#E8B948", textColor: "#FFF6DC", metaColor: "rgba(232,185,72,0.55)", rarityLetterSpacing: "0.55em", particleCount: 60, starCount: 0, rayCount: 16 },
+  UNIQUE:    { worldClass: "world-unique",    rarityColor: "#C8A8FF", textColor: "#F0E8FF", metaColor: "rgba(200,168,255,0.55)", rarityLetterSpacing: "0.5em",  particleCount: 36, starCount: 80, rayCount: 0 },
+  RARE:      { worldClass: "world-rare",      rarityColor: "#7FC8FF", textColor: "#EAF6FF", metaColor: "rgba(127,200,255,0.55)", rarityLetterSpacing: "0.45em", particleCount: 22, starCount: 0,  rayCount: 0 },
+  NORMAL:    { worldClass: "world-normal",    rarityColor: "#9A9590", textColor: "#2A2724", metaColor: "rgba(120,113,108,0.7)",  rarityLetterSpacing: "0.4em",  particleCount: 14, starCount: 0,  rayCount: 0 },
 };
 
-const LEGENDARY_PARTICLES = Array.from({ length: 24 }).map((_, i) => ({
-  angle: (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3,
-  size: 1 + Math.random() * 2, delay: Math.random() * 5, duration: 4 + Math.random() * 4, opacity: 0.2 + Math.random() * 0.4,
-}));
-const UNIQUE_PARTICLES = Array.from({ length: 14 }).map((_, i) => ({
-  angle: (i / 14) * Math.PI * 2, size: 1 + Math.random() * 1.5, delay: Math.random() * 4, duration: 5 + Math.random() * 3, opacity: 0.15 + Math.random() * 0.25,
-}));
-const RARE_PARTICLES = Array.from({ length: 8 }).map((_, i) => ({
-  angle: (i / 8) * Math.PI * 2, size: 1 + Math.random() * 1, delay: Math.random() * 3, duration: 6 + Math.random() * 3, opacity: 0.1 + Math.random() * 0.15,
-}));
-const NORMAL_PARTICLES = Array.from({ length: 4 }).map((_, i) => ({
-  angle: (i / 4) * Math.PI * 2, size: 0.8 + Math.random() * 0.8, delay: Math.random() * 2, duration: 7 + Math.random() * 3, opacity: 0.08 + Math.random() * 0.1,
-}));
-
-/* ─── Cinematic Fortune Reveal ─── */
-type RevealStep = "freeze" | "flash" | "converge" | "card" | "rarity" | "fortune" | "settled";
+function makeParticles(count: number, seedOffset = 0) {
+  return Array.from({ length: count }).map((_, i) => {
+    const r = (n: number) => {
+      const x = Math.sin((i + seedOffset + 1) * (n + 1) * 9301) * 10000;
+      return x - Math.floor(x);
+    };
+    return {
+      left: r(1) * 100,
+      top: r(2) * 100,
+      size: 1 + r(3) * 2.5,
+      delay: r(4) * 6,
+      duration: 6 + r(5) * 8,
+      opacity: 0.25 + r(6) * 0.55,
+      drift: (r(7) - 0.5) * 40,
+    };
+  });
+}
 
 function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onOpenAnother: () => void }) {
-  const [step, setStep] = useState<RevealStep>("freeze");
-  const [showButton, setShowButton] = useState(false);
-  const cfg = RARITY_CONFIG[result.rarity] ?? RARITY_CONFIG.NORMAL;
+  const [step, setStep] = useState<RevealStep>("enter");
+  const cfg = RARITY_WORLDS[result.rarity] ?? RARITY_WORLDS.NORMAL;
   const rarity = result.rarity;
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const particles = useRef(makeParticles(cfg.particleCount, rarity.charCodeAt(0))).current;
+  const stars = useRef(cfg.starCount > 0 ? makeParticles(cfg.starCount, rarity.charCodeAt(1) + 13) : []).current;
 
   useEffect(() => {
     const timers = timerRefs.current;
-    // Step 1: Freeze (300ms)
-    timers.push(setTimeout(() => setStep("flash"), 300));
-    // Step 2: Oracle flash (150ms)
-    timers.push(setTimeout(() => setStep("converge"), 450));
-    // Step 3: Energy convergence (700ms)
-    timers.push(setTimeout(() => setStep("card"), 1150));
-    // Step 4: Card materializes (500ms)
-    timers.push(setTimeout(() => setStep("rarity"), 1650));
-    // Step 5: Rarity label (300ms)
-    timers.push(setTimeout(() => setStep("fortune"), 1950));
-    // Step 6: Fortune text (600ms)
-    timers.push(setTimeout(() => setStep("settled"), 2550));
-    // Step 9: Button (delayed 600ms after settle)
-    timers.push(setTimeout(() => setShowButton(true), 3150));
-
+    timers.push(setTimeout(() => setStep("atmosphere"), 80));
+    timers.push(setTimeout(() => setStep("rarity"), 900));
+    timers.push(setTimeout(() => setStep("fortune"), 1700));
+    timers.push(setTimeout(() => setStep("meta"), 3400));
+    timers.push(setTimeout(() => setStep("settled"), 4100));
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const particles = rarity === "LEGENDARY" ? LEGENDARY_PARTICLES
-    : rarity === "UNIQUE" ? UNIQUE_PARTICLES
-    : rarity === "RARE" ? RARE_PARTICLES
-    : NORMAL_PARTICLES;
+  const showRarity  = step === "rarity"  || step === "fortune" || step === "meta" || step === "settled";
+  const showFortune = step === "fortune" || step === "meta"    || step === "settled";
+  const showMeta    = step === "meta"    || step === "settled";
+  const showButtons = step === "settled";
 
-  const showCard = step === "card" || step === "rarity" || step === "fortune" || step === "settled";
-  const showRarity = step === "rarity" || step === "fortune" || step === "settled";
-  const showFortune = step === "fortune" || step === "settled";
+  const words = result.message.split(" ");
+  let runningCharIdx = 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 440, position: "relative" }}>
+    <div className={`reveal-world ${cfg.worldClass} ${step !== "enter" ? "reveal-world-in" : ""}`}>
+      <div className="world-base" />
+      <div className="world-vignette" />
+      <div className="world-aurora" />
 
-      {/* Step 1: Freeze — subtle vignette */}
-      <div className={`reveal-vignette ${step !== "freeze" ? "reveal-vignette-fade" : ""}`} />
-
-      {/* Step 2: Oracle flash */}
-      {(step === "flash" || step === "converge") && (
-        <div className={`oracle-flash ${rarity === "LEGENDARY" ? "oracle-flash-strong" : ""}`} />
-      )}
-
-      {/* Step 3: Energy convergence — layered glow */}
-      {step !== "freeze" && step !== "flash" && (
-        <div className={`energy-convergence ${cfg.cssClass}-energy`}>
-          {/* Inner core */}
-          <div className="energy-core" />
-          {/* Mid bloom */}
-          <div className={`energy-mid ${rarity === "LEGENDARY" ? "energy-mid-legendary" : rarity === "UNIQUE" ? "energy-mid-unique" : ""}`} />
-          {/* Outer halo */}
-          <div className={`energy-outer ${rarity === "LEGENDARY" ? "energy-outer-legendary" : ""}`} />
-
-          {/* Legendary rays */}
-          {rarity === "LEGENDARY" && <div className="legendary-reveal-rays" />}
-
-          {/* Particles — density by rarity */}
-          {particles.map((p, i) => (
-            <span key={i} className="reveal-particle" style={{
-              '--p-angle': `${p.angle}rad`, '--p-delay': `${p.delay}s`,
-              '--p-duration': `${p.duration}s`, '--p-size': `${p.size}px`,
-              '--p-opacity': p.opacity,
-            } as React.CSSProperties} />
+      {stars.length > 0 && (
+        <div className="world-stars">
+          {stars.map((s, i) => (
+            <span key={i} className="world-star" style={{
+              left: `${s.left}%`, top: `${s.top}%`,
+              width: `${s.size * 0.7}px`, height: `${s.size * 0.7}px`,
+              animationDelay: `${s.delay}s`, animationDuration: `${4 + s.duration * 0.3}s`,
+              opacity: s.opacity * 0.9,
+            }} />
           ))}
         </div>
       )}
 
-      {/* Step 4–6: Card */}
-      <div className={`reveal-card-wrapper ${showCard ? "reveal-card-visible" : "reveal-card-hidden"} ${cfg.cssClass}`}
-        style={{ position: "relative", zIndex: 5, width: "100%", maxWidth: 400 }}>
-
-        {/* Glass card */}
-        <div className="reveal-glass-card" style={{
-          padding: "52px 44px 40px",
-          textAlign: "center", width: "100%", minHeight: 280,
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-        }}>
-
-          {/* Rarity label — step 5 */}
-          <p className={`reveal-rarity-label ${showRarity ? "reveal-rarity-visible" : "reveal-rarity-hidden"}`} style={{
-            fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 500,
-            letterSpacing: "0.35em", textTransform: "uppercase",
-            color: cfg.labelColor, marginBottom: 24,
-          }}>
-            {result.rarity}
-          </p>
-
-          {/* Fortune text — step 6 */}
-          <p className={`reveal-fortune-text ${showFortune ? "reveal-fortune-visible" : "reveal-fortune-hidden"} ${rarity === "RARE" ? "rare-shimmer-text" : ""}`}
-            style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: 28, fontWeight: 300, fontStyle: "italic",
-              lineHeight: 1.55, color: cfg.textColor,
-            }}>
-            &ldquo;{result.message}&rdquo;
-          </p>
-
-          {/* Cookie number + explorer */}
-          <div className={`reveal-meta ${showFortune ? "reveal-meta-visible" : "reveal-meta-hidden"}`} style={{ marginTop: 32 }}>
-            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#C0BBB3" }}>
-              Cookie #{result.cookie_number}
-            </p>
-            {result.txHash && (
-              <a href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-block", marginTop: 6, fontFamily: "'Outfit', sans-serif", fontSize: 10, fontWeight: 300, color: "#B5B0A8", textDecoration: "none", transition: "color 0.2s" }}
-                onMouseEnter={(e) => { (e.target as HTMLElement).style.textDecoration = "underline"; }}
-                onMouseLeave={(e) => { (e.target as HTMLElement).style.textDecoration = "none"; }}>
-                View on Explorer ↗
-              </a>
-            )}
-          </div>
+      {cfg.rayCount > 0 && (
+        <div className="world-rays">
+          {Array.from({ length: cfg.rayCount }).map((_, i) => (
+            <span key={i} className="world-ray" style={{
+              transform: `translate(-50%, -100%) rotate(${(360 / cfg.rayCount) * i}deg)`,
+              animationDelay: `${(i % 4) * 0.8}s`,
+            }} />
+          ))}
         </div>
+      )}
+
+      <div className="world-halo" />
+      <div className="world-halo world-halo-2" />
+
+      <div className="world-particles">
+        {particles.map((p, i) => (
+          <span key={i} className="world-particle" style={{
+            left: `${p.left}%`, top: `${p.top}%`,
+            width: `${p.size}px`, height: `${p.size}px`,
+            opacity: p.opacity,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.duration}s`,
+            ['--drift' as any]: `${p.drift}px`,
+          } as React.CSSProperties} />
+        ))}
       </div>
 
-      {/* Step 9: Button — delayed */}
-      <div className={`reveal-button-wrapper ${showButton ? "reveal-button-visible" : "reveal-button-hidden"}`}>
-        <button onClick={onOpenAnother} className="btn-pill" style={{ marginTop: 24 }}>
-          Open Another
-        </button>
-        <div style={{ marginTop: 20, textAlign: "center", fontFamily: "'Outfit', sans-serif", fontWeight: 300, fontSize: 11, color: "#9A9A9A" }}>
-          Made by{" "}
-          <a
-            href="https://x.com/ZaksansPG"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#9A9A9A", textDecoration: "none" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
-          >
-            Zaksans
-          </a>
+      <div className="reveal-composition">
+        <div className={`reveal-rarity-word ${showRarity ? "in" : ""}`}
+          style={{ color: cfg.rarityColor, letterSpacing: cfg.rarityLetterSpacing }}>
+          {rarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
+          <span className="reveal-rarity-text">{rarity}</span>
+          <span className="reveal-rarity-rule" style={{ background: cfg.rarityColor }} />
+        </div>
+
+        <p className={`reveal-fortune ${showFortune ? "in" : ""}`} style={{ color: cfg.textColor }}>
+          <span className="reveal-quote" aria-hidden="true">“</span>
+          {words.map((word, wi) => (
+            <span key={wi} className="reveal-word">
+              {Array.from(word).map((ch, ci) => {
+                const idx = runningCharIdx++;
+                return (
+                  <span
+                    key={ci}
+                    className={`reveal-letter ${showFortune ? "in" : ""}`}
+                    style={{ transitionDelay: showFortune ? `${idx * 28}ms` : "0ms" }}
+                  >{ch}</span>
+                );
+              })}
+              {wi < words.length - 1 && <span className="reveal-space">&nbsp;</span>}
+            </span>
+          ))}
+          <span className="reveal-quote" aria-hidden="true">”</span>
+        </p>
+
+        <div className={`reveal-meta-row ${showMeta ? "in" : ""}`} style={{ color: cfg.metaColor }}>
+          <span>Cookie #{result.cookie_number}</span>
+          {result.txHash && (
+            <>
+              <span className="reveal-meta-dot">·</span>
+              <a href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="reveal-meta-link" style={{ color: cfg.metaColor }}>
+                View on Explorer ↗
+              </a>
+            </>
+          )}
+        </div>
+
+        <div className={`reveal-actions ${showButtons ? "in" : ""}`}>
+          <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-${rarity.toLowerCase()}`}>
+            Open Another
+          </button>
+          <div className="reveal-credit">
+            Made by{" "}
+            <a href="https://x.com/ZaksansPG" target="_blank" rel="noopener noreferrer">Zaksans</a>
+          </div>
         </div>
       </div>
     </div>
