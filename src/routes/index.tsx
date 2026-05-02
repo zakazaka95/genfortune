@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createClient } from "genlayer-js";
-import { testnetBradbury } from "genlayer-js/chains";
+import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
 
@@ -31,15 +31,15 @@ interface FortuneResult {
   txHash?: string;
 }
 
-const CONTRACT_ADDRESS = "0x0A3854EE6ABF22637CdF3F0c879c3d2F92e190d6";
-const STUDIO_CHAIN_ID_HEX = "0x107D";
+const CONTRACT_ADDRESS = "0x53244292f3EC3aBEbd61a847B3aB2c16C06346B9";
+const STUDIO_CHAIN_ID_HEX = "0xF22F";
 
 const STUDIO_CHAIN_PARAMS = {
   chainId: STUDIO_CHAIN_ID_HEX,
-  chainName: "GenLayer Bradbury Testnet",
+  chainName: "GenLayer Studio",
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
-  rpcUrls: ["https://rpc.testnet-chain.genlayer.com"],
-  blockExplorerUrls: ["https://explorer.testnet-chain.genlayer.com"],
+  rpcUrls: ["https://studio.genlayer.com/api"],
+  blockExplorerUrls: ["https://explorer-studio.genlayer.com"],
 };
 
 async function ensureStudioNetwork() {
@@ -47,9 +47,9 @@ async function ensureStudioNetwork() {
   if (!eth) throw new Error("No wallet found");
   try {
     const currentChainId = await eth.request({ method: "eth_chainId" });
-    if (currentChainId.toLowerCase() === "0x107d") return;
+    if (currentChainId.toLowerCase() === "0xf22f") return;
     try {
-      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x107D" }] });
+      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
       return;
     } catch {}
     try {
@@ -57,8 +57,8 @@ async function ensureStudioNetwork() {
       return;
     } catch {}
     const finalChainId = await eth.request({ method: "eth_chainId" });
-    if (finalChainId.toLowerCase() === "0x107d") return;
-    throw new Error("Please add GenLayer Bradbury Testnet manually:\nRPC: https://rpc.testnet-chain.genlayer.com\nChain ID: 4221\nSymbol: GEN");
+    if (finalChainId.toLowerCase() === "0xf22f") return;
+    throw new Error("Please add GenLayer Studio network manually:\nRPC: https://studio.genlayer.com/api\nChain ID: 61999\nSymbol: GEN");
   } catch (err) { throw err; }
 }
 
@@ -266,7 +266,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           {result.txHash && (
             <>
               <span className="reveal-meta-dot">·</span>
-              <a href={`https://explorer-bradbury.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="reveal-meta-link" style={{ color: cfg.metaColor }}>
+              <a href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="reveal-meta-link" style={{ color: cfg.metaColor }}>
                 View on Explorer ↗
               </a>
             </>
@@ -324,12 +324,21 @@ function InsufficientBalancePrompt({ balance, onRecheck }: { balance: bigint; on
     <div className="animate-fadeIn" style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: 340, textAlign: "center" }}>
       <p style={textStyle(15, 400, "#3A3530", { marginBottom: 8 })}>You need GEN to open a fortune</p>
       <p style={textStyle(11, 300, "#A8A29E", { marginBottom: 28, lineHeight: 1.6 })}>
-        No GEN? Grab some free from the faucet — instant and free
+        Get free GEN from the GenLayer Studio faucet — instant and free
       </p>
 
-      <a href="https://testnet-faucet.genlayer.foundation" target="_blank" rel="noopener noreferrer"
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32, width: "100%" }}>
+        {["Go to studio.genlayer.com", "Connect your wallet", "Click the faucet button next to your address", "Come back and click the button below"].map((step, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <span style={textStyle(10, 500, "#C0BBB3", { minWidth: 16 })}>{i + 1}</span>
+            <span style={textStyle(11, 300, "#78716C", { textAlign: "left", lineHeight: 1.5 })}>{step}</span>
+          </div>
+        ))}
+      </div>
+
+      <a href="https://studio.genlayer.com" target="_blank" rel="noopener noreferrer"
         className="btn-pill" style={{ textDecoration: "none", marginBottom: 12, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-        Open Faucet →
+        Open GenLayer Studio →
       </a>
 
       <button onClick={handleRecheck} disabled={checking}
@@ -366,7 +375,7 @@ function FortuneCookieApp() {
     const eth = getEthereum();
     if (!eth || !wallet) return;
     const handleChainChange = (chainId: string) => {
-      if (chainId.toLowerCase() !== "0x107d") {
+      if (chainId.toLowerCase() !== "0xf22f") {
         setWrongNetwork(true);
       } else {
         setWrongNetwork(false);
@@ -388,14 +397,14 @@ function FortuneCookieApp() {
 
     // Silently switch to GenLayer Studio network
     const chainId = await eth.request({ method: "eth_chainId" });
-    if (chainId.toLowerCase() === "0x107d") {
+    if (chainId.toLowerCase() === "0xf22f") {
       const bal = await fetchBalance(addr);
       setBalance(bal);
       setPhase("connected");
       return;
     }
     try {
-      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x107D" }] });
+      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xF22F" }] });
       const bal2 = await fetchBalance(addr);
       setBalance(bal2);
       setPhase("connected");
@@ -408,13 +417,13 @@ function FortuneCookieApp() {
           setBalance(bal3);
           setPhase("connected");
           return;
-        } catch { setError("Could not add GenLayer Bradbury Testnet. Please add it manually."); return; }
+        } catch { setError("Could not add GenLayer Studio network. Please add it manually."); return; }
       }
       if (err.code === 4001) {
-        setError("Please switch to GenLayer Bradbury Testnet to continue.");
+        setError("Please switch to GenLayer Studio network to continue.");
         return;
       }
-      setError("Could not switch network automatically. Please switch to GenLayer Bradbury Testnet (Chain ID: 4221) manually.");
+      setError("Could not switch network automatically. Please switch to GenLayer Studio (Chain ID: 61999) manually.");
     }
   }, []);
 
@@ -429,7 +438,7 @@ function FortuneCookieApp() {
       const address = wallet;
       if (!address) { setError("Wallet not connected."); setPhase("idle"); return; }
       await ensureStudioNetwork();
-      const client = createClient({ chain: testnetBradbury, account: address as `0x${string}` });
+      const client = createClient({ chain: studionet, account: address as `0x${string}` });
       const txHash = await client.writeContract({
         address: CONTRACT_ADDRESS as `0x${string}`, functionName: "open_cookie",
         args: [userKeyword], value: 100000000000000000n,
