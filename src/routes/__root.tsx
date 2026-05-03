@@ -42,6 +42,7 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: "AI generates your unique fortune onchain. Powered by GenLayer. Mint it as an NFT on Base." },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/IhlzXUUNDKgtL0h8xxb3VDNTxby2/social-images/social-1777840118056-ChatGPT_Image_May_1,_2026,_01_22_33_AM.webp" },
       { name: "base:app_id", content: "69f7ac2767b0f79c5f048ddb" },
+      { name: "talentapp:project_verification", content: "1e96cbd069af6e07149848a85d4aa83df8b0b6a5551d7aff53b48f382cef3281ea5a22a5c6634fbea906af0787355c64d5e84f959a968dbc7b1b50574a650d07" },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/og-image.png" },
