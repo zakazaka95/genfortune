@@ -4,6 +4,7 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
+import { MintFortuneButton } from "../components/MintFortuneButton";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
 BigInt.prototype.toJSON = function () { return this.toString(); };
@@ -283,6 +284,10 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           >
             Share on X ✦
           </button>
+          <MintFortuneButton
+            fortune={{ text: result.message, rarity: result.rarity, cookieNumber: result.cookie_number }}
+            rarity={result.rarity}
+          />
           <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-${rarity.toLowerCase()}`}>
             Open Another
           </button>
