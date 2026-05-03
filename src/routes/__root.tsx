@@ -41,6 +41,7 @@ export const Route = createRootRoute({
       { name: "twitter:title", content: "Pure Fortune — AI Fortune Cookies on GenLayer" },
       { name: "twitter:description", content: "Pay 0.1 GEN. AI generates your unique fortune onchain. Powered by GenLayer." },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/IhlzXUUNDKgtL0h8xxb3VDNTxby2/social-images/social-1777840118056-ChatGPT_Image_May_1,_2026,_01_22_33_AM.webp" },
+      { name: "base:app_id", content: "69f7ac2767b0f79c5f048ddb" },
     ],
     links: [
       {
