@@ -444,7 +444,7 @@ function FortuneCookieApp() {
         args: [userKeyword], value: 100000000000000000n,
       });
       setPhase("revealing");
-      const receipt: any = await client.waitForTransactionReceipt({ hash: txHash, status: TransactionStatus.FINALIZED, retries: 60 });
+      const receipt: any = await client.waitForTransactionReceipt({ hash: txHash, status: TransactionStatus.FINALIZED, retries: 400, interval: 10000 });
 
       const parseReadable = (raw: string) => {
         const fixed = raw.replace(/(\d)"(?=[a-zA-Z])/g, '$1,"').replace(/"(\s*)"(?=[a-zA-Z])/g, '","').replace(/}(\s*)"(?=[a-zA-Z])/g, '},"');
