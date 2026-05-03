@@ -104,12 +104,12 @@ export function MintFortuneButton({ fortune, rarity }: { fortune: FortuneData; r
       setStatus("awaiting_wallet");
       const calldata = encodeMintFortune(account, fortune.text, RARITY_ENUM[fortune.rarity], fortune.cookieNumber);
 
-      // ERC-8021 Base Builder Code attribution suffix
+      // ERC-8021 Base Builder Code attribution
       const builderCode = "bc_1o7xvetk";
       const codeBytes = new TextEncoder().encode(builderCode);
       const codeHex = Array.from(codeBytes).map(b => b.toString(16).padStart(2, "0")).join("");
-      const codeLength = codeBytes.length.toString(16).padStart(2, "0");
-      const suffix = "8021" + codeLength + codeHex;
+      const codeLenHex = codeBytes.length.toString(16).padStart(4, "0");
+      const suffix = "8021802180218021" + codeLenHex + codeHex + "8021802180218021";
 
       const hash: string = await eth.request({
         method: "eth_sendTransaction",
