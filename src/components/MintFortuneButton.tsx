@@ -170,7 +170,7 @@ export function MintFortuneButton({ fortune, rarity }: { fortune: FortuneData; r
       {status === "success" && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "10px", letterSpacing: "1.5px", color: colors.accent, opacity: 0.8 }}>
           {tokenId && <span>TOKEN #{tokenId}</span>}
-          {txHash && <a href={`https://basescan.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer" style={{ color: colors.accent, textDecoration: "underline" }}>VIEW ON BASESCAN ↗</a>}
+          
           {tokenId && <a href={`https://opensea.io/assets/base/${CONTRACT_ADDRESS}/${tokenId}`} target="_blank" rel="noopener noreferrer" style={{ color: colors.accent, textDecoration: "underline" }}>VIEW ON OPENSEA ↗</a>}
         </div>
       )}
