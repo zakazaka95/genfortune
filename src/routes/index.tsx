@@ -4,6 +4,7 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
+import { MintFortuneButton } from "../components/MintFortuneButton";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
 BigInt.prototype.toJSON = function () { return this.toString(); };
