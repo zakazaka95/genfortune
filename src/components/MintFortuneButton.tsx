@@ -109,7 +109,8 @@ export function MintFortuneButton({ fortune, rarity }: { fortune: FortuneData; r
       const codeBytes = new TextEncoder().encode(builderCode);
       const codeHex = Array.from(codeBytes).map(b => b.toString(16).padStart(2, "0")).join("");
       const codeLenHex = codeBytes.length.toString(16).padStart(4, "0");
-      const suffix = "8021802180218021" + codeLenHex + codeHex + "8021802180218021";
+      // Builder code data comes first, then the 8021 magic bytes LAST (last 16 bytes must be 8021 repeating)
+      const suffix = codeLenHex + codeHex + "80218021802180218021802180218021";
 
       const hash: string = await eth.request({
         method: "eth_sendTransaction",
