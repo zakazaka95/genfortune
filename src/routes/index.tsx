@@ -283,6 +283,10 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           >
             Share on X ✦
           </button>
+          <MintFortuneButton
+            fortune={{ text: result.message, rarity: result.rarity, cookieNumber: result.cookie_number }}
+            rarity={result.rarity}
+          />
           <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-${rarity.toLowerCase()}`}>
             Open Another
           </button>
