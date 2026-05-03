@@ -26,7 +26,7 @@ const RARITY_ENUM: Record<Rarity, number> = {
 };
 
 function encodeMintFortune(to: string, text: string, rarity: number, cookieNum: number): string {
-  const SELECTOR = "0x13dc9e74";
+  const SELECTOR = "0x1e300e9b";
   const pad32 = (hex: string) => hex.replace("0x", "").padStart(64, "0");
   const toHex = (n: number | bigint) => BigInt(n).toString(16);
 
