@@ -18,7 +18,7 @@ const BASE_CHAIN = {
   blockExplorerUrls: ["https://basescan.org"],
 };
 
-const CONTRACT_ADDRESS = "0xC1Db51Da62cBbe80ba495B815922207E26b7a1A8";
+const CONTRACT_ADDRESS = "0xf98b8f4aCf3F2B799787afce831570Bc939A907F";
 const MINT_PRICE = "400000000000000";
 
 const RARITY_ENUM: Record<Rarity, number> = {
