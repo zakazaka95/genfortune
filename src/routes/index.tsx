@@ -5,6 +5,7 @@ import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
 import { MintFortuneButton } from "../components/MintFortuneButton";
+import { IntroVideo } from "../components/IntroVideo";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
 BigInt.prototype.toJSON = function () { return this.toString(); };
@@ -486,11 +487,17 @@ function FortuneCookieApp() {
 
   const goBackToConnected = useCallback(() => { setFortune(null); setError(null); setPhase("connected"); }, []);
 
+  const [introDone, setIntroDone] = useState(false);
+
   return (
+    <>
+    <IntroVideo onComplete={() => setIntroDone(true)} />
     <main style={{
       background: "radial-gradient(ellipse at 50% 45%, rgba(245,244,240,1) 0%, #FAFAF8 60%, #F5F4F0 100%)",
       minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
       padding: "64px 24px", position: "relative", overflow: "hidden",
+      opacity: introDone ? 1 : 0,
+      transition: "opacity 0.6s ease",
     }}>
       <h1 className="sr-only">Fortune Cookie</h1>
 
@@ -552,5 +559,6 @@ function FortuneCookieApp() {
         </pre>
       )}
     </main>
+    </>
   );
 }
