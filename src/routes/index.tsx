@@ -497,7 +497,9 @@ function FortuneCookieApp() {
       minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
       padding: "64px 24px", position: "relative", overflow: "hidden",
       opacity: introDone ? 1 : 0,
-      transition: "opacity 0.6s ease",
+      transform: introDone ? "scale(1)" : "scale(0.98)",
+      filter: introDone ? "blur(0px)" : "blur(6px)",
+      transition: "opacity 0.8s ease-out, transform 0.8s ease-out, filter 0.8s ease-out",
     }}>
       <h1 className="sr-only">Fortune Cookie</h1>
 
