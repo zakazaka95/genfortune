@@ -4,7 +4,7 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
-import { MintFortuneButton } from "../components/MintFortuneButton";
+import { MintFortuneButton, type MintStatus } from "../components/MintFortuneButton";
 import { IntroVideo } from "../components/IntroVideo";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
@@ -165,6 +165,8 @@ function makeParticles(count: number, seedOffset = 0) {
 
 function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onOpenAnother: () => void }) {
   const [step, setStep] = useState<RevealStep>("enter");
+  const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
+  const minted = mintStatus === "success";
   const cfg = RARITY_WORLDS[result.rarity] ?? RARITY_WORLDS.NORMAL;
   const rarity = result.rarity;
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -288,20 +290,23 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           <MintFortuneButton
             fortune={{ text: result.message, rarity: result.rarity, cookieNumber: result.cookie_number }}
             rarity={result.rarity}
+            onStatusChange={setMintStatus}
           />
-          <div className="reveal-cta-row">
-            <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-secondary reveal-cta-${rarity.toLowerCase()}`}>
-              Open Another
-            </button>
-            <a
-              href="https://genmarket.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`reveal-cta reveal-cta-primary reveal-cta-${rarity.toLowerCase()}`}
-            >
-              List on GenMarket ↗
-            </a>
-          </div>
+          {minted && (
+            <div className="reveal-cta-row reveal-cta-row-in">
+              <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-secondary reveal-cta-${rarity.toLowerCase()}`}>
+                Open Another
+              </button>
+              <a
+                href="https://genmarket.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`reveal-cta reveal-cta-primary reveal-cta-${rarity.toLowerCase()}`}
+              >
+                List on GenMarket ↗
+              </a>
+            </div>
+          )}
           <div className="reveal-credit">
             Made by{" "}
             <a href="https://x.com/ZaksansPG" target="_blank" rel="noopener noreferrer">Zaksans</a>

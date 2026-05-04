@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export type Rarity = "NORMAL" | "RARE" | "UNIQUE" | "LEGENDARY";
 
@@ -48,7 +48,7 @@ function encodeMintFortune(to: string, text: string, rarity: number, cookieNum: 
   return SELECTOR + addrPadded + stringOffset + rarityPadded + cookiePadded + textLenPadded + textHex;
 }
 
-type MintStatus = "idle" | "switching_network" | "awaiting_wallet" | "minting" | "success" | "error";
+export type MintStatus = "idle" | "switching_network" | "awaiting_wallet" | "minting" | "success" | "error";
 
 async function pollReceipt(eth: any, hash: string, retries = 60, interval = 3000): Promise<any> {
   for (let i = 0; i < retries; i++) {
@@ -69,12 +69,14 @@ const RARITY_COLORS: Record<Rarity, { accent: string; glow: string; text: string
   NORMAL:    { accent: "#1A1A1A", glow: "rgba(0,0,0,0.15)", text: "#F8F6F0" },
 };
 
-export function MintFortuneButton({ fortune, rarity }: { fortune: FortuneData; rarity: Rarity }) {
+export function MintFortuneButton({ fortune, rarity, onStatusChange }: { fortune: FortuneData; rarity: Rarity; onStatusChange?: (status: MintStatus) => void }) {
   const [status, setStatus] = useState<MintStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const colors = RARITY_COLORS[rarity];
+
+  useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
 
   const isLoading = ["switching_network", "awaiting_wallet", "minting"].includes(status);
 
