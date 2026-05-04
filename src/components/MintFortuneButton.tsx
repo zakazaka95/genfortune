@@ -48,7 +48,7 @@ function encodeMintFortune(to: string, text: string, rarity: number, cookieNum: 
   return SELECTOR + addrPadded + stringOffset + rarityPadded + cookiePadded + textLenPadded + textHex;
 }
 
-type MintStatus = "idle" | "switching_network" | "awaiting_wallet" | "minting" | "success" | "error";
+export type MintStatus = "idle" | "switching_network" | "awaiting_wallet" | "minting" | "success" | "error";
 
 async function pollReceipt(eth: any, hash: string, retries = 60, interval = 3000): Promise<any> {
   for (let i = 0; i < retries; i++) {
