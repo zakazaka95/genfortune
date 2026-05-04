@@ -69,12 +69,14 @@ const RARITY_COLORS: Record<Rarity, { accent: string; glow: string; text: string
   NORMAL:    { accent: "#1A1A1A", glow: "rgba(0,0,0,0.15)", text: "#F8F6F0" },
 };
 
-export function MintFortuneButton({ fortune, rarity }: { fortune: FortuneData; rarity: Rarity }) {
+export function MintFortuneButton({ fortune, rarity, onStatusChange }: { fortune: FortuneData; rarity: Rarity; onStatusChange?: (status: MintStatus) => void }) {
   const [status, setStatus] = useState<MintStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const colors = RARITY_COLORS[rarity];
+
+  useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
 
   const isLoading = ["switching_network", "awaiting_wallet", "minting"].includes(status);
 
