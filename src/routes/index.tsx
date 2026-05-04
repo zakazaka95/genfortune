@@ -289,9 +289,19 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
             fortune={{ text: result.message, rarity: result.rarity, cookieNumber: result.cookie_number }}
             rarity={result.rarity}
           />
-          <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-${rarity.toLowerCase()}`}>
-            Open Another
-          </button>
+          <div className="reveal-cta-row">
+            <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-secondary reveal-cta-${rarity.toLowerCase()}`}>
+              Open Another
+            </button>
+            <a
+              href="https://genmarket.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`reveal-cta reveal-cta-primary reveal-cta-${rarity.toLowerCase()}`}
+            >
+              List on GenMarket ↗
+            </a>
+          </div>
           <div className="reveal-credit">
             Made by{" "}
             <a href="https://x.com/ZaksansPG" target="_blank" rel="noopener noreferrer">Zaksans</a>
