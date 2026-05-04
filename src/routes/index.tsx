@@ -165,6 +165,8 @@ function makeParticles(count: number, seedOffset = 0) {
 
 function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onOpenAnother: () => void }) {
   const [step, setStep] = useState<RevealStep>("enter");
+  const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
+  const minted = mintStatus === "success";
   const cfg = RARITY_WORLDS[result.rarity] ?? RARITY_WORLDS.NORMAL;
   const rarity = result.rarity;
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
