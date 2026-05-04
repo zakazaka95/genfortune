@@ -1105,7 +1105,7 @@
   transition: opacity 400ms ease, transform 400ms ease;
 }
 .reveal-cta-row-in { opacity: 1; transform: translateY(0); }
-.reveal-cta-row-spacer {
+
 .reveal-cta-row .reveal-cta {
   display: inline-flex;
   align-items: center;
