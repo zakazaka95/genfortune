@@ -1233,15 +1233,18 @@
 .reveal-postmint-primary {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  align-items: stretch;
+  gap: 18px;
   width: 100%;
   max-width: 520px;
+  margin: 0 auto;
 }
 
 .pm-btn {
-  flex: 1 1 45%;
-  max-width: 45%;
+  flex: 1 1 0;
+  min-width: 0;
   height: 52px;
+  padding: 0 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1253,57 +1256,137 @@
   text-decoration: none;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, filter 0.18s ease;
+  box-sizing: border-box;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
   white-space: nowrap;
 }
 
+/* PRIMARY = List on GenMarket — rarity-tinted, high contrast */
 .pm-btn-primary {
-  background: #000;
+  background: #111;
   color: #fff;
-  border-color: #000;
+  border-color: rgba(255,255,255,0.12);
   box-shadow: 0 14px 36px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.2);
 }
 .pm-btn-primary:hover {
-  transform: translateY(-3px) scale(1.03);
+  transform: translateY(-2px);
   box-shadow: 0 22px 48px rgba(0,0,0,0.45), 0 0 28px rgba(0,0,0,0.35);
+  filter: brightness(1.05);
 }
 .pm-btn-primary:active { transform: scale(0.97); }
 
+/* SECONDARY = Open Another — softer */
 .pm-btn-secondary {
-  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
-  color: rgba(255,255,255,0.92);
-  border-color: rgba(255,255,255,0.08);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  background: transparent;
+  color: inherit;
+  border-color: currentColor;
+  opacity: 0.78;
+  box-shadow: none;
 }
 .pm-btn-secondary:hover {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
+  opacity: 1;
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.06);
 }
 .pm-btn-secondary:active { transform: scale(0.97); }
 
+/* Per-rarity primary tinting + adaptive contrast */
+.world-legendary .pm-btn-primary {
+  background: linear-gradient(180deg, #1a1407 0%, #0a0604 100%);
+  color: #FFF6DC;
+  border-color: rgba(245,197,66,0.55);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.55), 0 0 22px rgba(245,197,66,0.35);
+}
+.world-legendary .pm-btn-primary:hover {
+  box-shadow: 0 22px 48px rgba(0,0,0,0.65), 0 0 36px rgba(245,197,66,0.55);
+}
+.world-unique .pm-btn-primary {
+  background: linear-gradient(180deg, #1a0f2e 0%, #0a0518 100%);
+  color: #F0E8FF;
+  border-color: rgba(180,127,255,0.55);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.55), 0 0 22px rgba(180,127,255,0.4);
+}
+.world-unique .pm-btn-primary:hover {
+  box-shadow: 0 22px 48px rgba(0,0,0,0.65), 0 0 36px rgba(180,127,255,0.6);
+}
+.world-rare .pm-btn-primary {
+  background: linear-gradient(180deg, #fff 0%, #eaf6ff 100%);
+  color: #0a2030;
+  border-color: rgba(79,195,247,0.7);
+  box-shadow: 0 14px 36px rgba(20,60,90,0.25), 0 0 22px rgba(79,195,247,0.45);
+}
+.world-rare .pm-btn-primary:hover {
+  box-shadow: 0 22px 48px rgba(20,60,90,0.35), 0 0 36px rgba(79,195,247,0.65);
+}
+.world-normal .pm-btn-primary {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.18);
+}
+
+/* Secondary border/text adapts to rarity bg */
+.world-legendary .pm-btn-secondary,
+.world-unique .pm-btn-secondary {
+  color: rgba(255,255,255,0.92);
+  border-color: rgba(255,255,255,0.35);
+}
+.world-legendary .pm-btn-secondary:hover,
+.world-unique .pm-btn-secondary:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.6);
+}
+.world-rare .pm-btn-secondary {
+  color: #0a2030;
+  border-color: rgba(10,32,48,0.35);
+}
+.world-rare .pm-btn-secondary:hover {
+  background: rgba(10,32,48,0.06);
+  border-color: rgba(10,32,48,0.6);
+}
+.world-normal .pm-btn-secondary {
+  color: #1a1a1a;
+  border-color: rgba(0,0,0,0.4);
+}
+.world-normal .pm-btn-secondary:hover {
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.7);
+}
+
+/* Secondary action links row */
 .reveal-postmint-secondary {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 28px;
+  margin-top: 4px;
 }
 .pm-link {
   background: none;
   border: none;
-  padding: 0;
+  padding: 4px 6px;
   cursor: pointer;
   font-family: Georgia, serif;
   font-size: 11px;
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: inherit;
-  opacity: 0.65;
+  opacity: 0.9;
   text-decoration: none;
-  transition: opacity 0.18s ease;
+  transition: opacity 0.18s ease, text-shadow 0.18s ease, transform 0.18s ease;
 }
-.pm-link:hover { opacity: 1; }
+.pm-link:hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
+
+.world-legendary .pm-link,
+.world-unique .pm-link {
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+.world-rare .pm-link { color: rgba(10,32,48,0.85); }
+.world-normal .pm-link { color: rgba(20,20,20,0.85); }
 
 @media (max-width: 480px) {
-  .pm-btn { font-size: 11px; letter-spacing: 1.5px; height: 48px; }
+  .reveal-postmint-primary { gap: 12px; }
+  .pm-btn { font-size: 11px; letter-spacing: 1.5px; height: 48px; padding: 0 14px; }
   .reveal-postmint-secondary { gap: 20px; }
 }

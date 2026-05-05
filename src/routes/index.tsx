@@ -362,7 +362,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
               <div className="reveal-postmint-primary">
                 <button
                   onClick={onOpenAnother}
-                  className="pm-btn pm-btn-primary"
+                  className="pm-btn pm-btn-secondary"
                 >
                   Open Another
                 </button>
@@ -370,7 +370,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
                   href="https://genmarket.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="pm-btn pm-btn-secondary"
+                  className="pm-btn pm-btn-primary"
                 >
                   List on GenMarket ↗
                 </a>
