@@ -191,12 +191,12 @@ export function MintFortuneButton({
   }, [fortune, onMintResolved, onRarityRevealed, onWalletConfirmed]);
 
   const label: Record<MintStatus, string> = {
-    idle: "→ Reveal Rarity • Mint on Base — $1",
+    idle: "→ Reveal Rarity • Mint on Base",
     switching_network: "Switching to Base…",
     awaiting_wallet: "Confirm in wallet…",
     minting: "Minting…",
     success: "✦ Minted!",
-    error: "→ Try again — $1",
+    error: "→ Try again",
   };
 
   const isIdle = status === "idle" || status === "error";
