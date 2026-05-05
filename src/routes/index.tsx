@@ -488,14 +488,14 @@ function FortuneCookieApp() {
       if (readable) {
         try {
           const parsed = parseReadable(readable);
-          if (parsed?.rarity && parsed?.message) { setFortune({ rarity: parsed.rarity as Rarity, message: parsed.message, cookie_number: parsed.cookie_number ?? 1, txHash }); setPhase("revealed"); return; }
+          if (parsed?.message) { setFortune({ message: parsed.message, cookie_number: parsed.cookie_number ?? 1, txHash }); setPhase("revealed"); return; }
         } catch {}
       }
       const eqOutput = leaderReceipt?.eq_outputs?.["0"]?.payload?.readable;
       if (eqOutput) {
         try {
           const parsed2 = parseReadable(eqOutput);
-          if (parsed2?.rarity && parsed2?.message) { setFortune({ rarity: parsed2.rarity as Rarity, message: parsed2.message, cookie_number: 1, txHash }); setPhase("revealed"); return; }
+          if (parsed2?.message) { setFortune({ message: parsed2.message, cookie_number: parsed2.cookie_number ?? 1, txHash }); setPhase("revealed"); return; }
         } catch {}
       }
       setError("Fortune confirmed onchain but could not display. Check explorer for your result.");
