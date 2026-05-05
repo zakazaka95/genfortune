@@ -167,9 +167,12 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
   const [revealedRarity, setRevealedRarity] = useState<Rarity | null>(null);
   const [pendingRarity, setPendingRarity] = useState<Rarity | null>(null);
-  const [videoActive, setVideoActive] = useState(false);
+  const [walletConfirmed, setWalletConfirmed] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
   const [videoFading, setVideoFading] = useState(false);
+  const [videoUnmounted, setVideoUnmounted] = useState(false);
   const revealVideoRef = useRef<HTMLVideoElement | null>(null);
   const minted = mintStatus === "success" && revealedRarity !== null;
   const activeRarity: Rarity = revealedRarity ?? "NORMAL";
@@ -178,41 +181,53 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const particles = useRef(makeParticles(cfg.particleCount, activeRarity.charCodeAt(0))).current;
   const stars = useRef(cfg.starCount > 0 ? makeParticles(cfg.starCount, activeRarity.charCodeAt(1) + 13) : []).current;
 
-  // The moment wallet confirms (tx hash returned), start the reveal video
-  const handleWalletConfirmed = useCallback(() => {
-    setVideoEnded(false);
-    setVideoFading(false);
-    setPendingRarity(null);
-    setVideoActive(true);
-    // play() will be called via ref effect below
+  // Preload reveal video on mount
+  useEffect(() => {
+    const v = revealVideoRef.current;
+    if (!v) return;
+    const onReady = () => setVideoReady(true);
+    if (v.readyState >= 4) setVideoReady(true);
+    v.addEventListener("canplaythrough", onReady);
+    try { v.load(); } catch {}
+    return () => v.removeEventListener("canplaythrough", onReady);
   }, []);
 
+  // The moment wallet confirms (tx hash returned)
+  const handleWalletConfirmed = useCallback(() => {
+    setWalletConfirmed(true);
+  }, []);
+
+  // Once wallet confirmed AND video buffered → start playback
   useEffect(() => {
-    if (videoActive && revealVideoRef.current) {
-      const v = revealVideoRef.current;
-      try { v.currentTime = 0; } catch {}
-      v.play().catch(() => {});
-    }
-  }, [videoActive]);
+    if (!walletConfirmed || !videoReady || videoPlaying || videoEnded) return;
+    const v = revealVideoRef.current;
+    if (!v) return;
+    try { v.currentTime = 0; } catch {}
+    v.play().then(() => setVideoPlaying(true)).catch(() => setVideoPlaying(true));
+  }, [walletConfirmed, videoReady, videoPlaying, videoEnded]);
 
   // Intercept rarity from mint button — stash until video ends
   const handleRarityFromMint = useCallback((r: Rarity) => {
     setPendingRarity(r);
   }, []);
 
-  // When both video ended AND rarity available → fade overlay, then reveal rarity
+  // When both video ended AND rarity available → fade overlay, then reveal rarity, then unmount video
   useEffect(() => {
-    if (!videoActive) return;
+    if (!videoPlaying) return;
     if (videoEnded && pendingRarity && !videoFading) {
       setVideoFading(true);
       const t = setTimeout(() => {
         setRevealedRarity(pendingRarity);
-        setVideoActive(false);
-        setVideoFading(false);
+        setVideoUnmounted(true);
       }, 600);
       return () => clearTimeout(t);
     }
-  }, [videoEnded, pendingRarity, videoActive, videoFading]);
+  }, [videoEnded, pendingRarity, videoPlaying, videoFading]);
+
+  // Show simple black fade overlay while waiting for video to be ready (after wallet confirm)
+  const showWaitingFade = walletConfirmed && !videoPlaying && !videoEnded;
+  // Video overlay visible from playback start through fade
+  const showVideoOverlay = videoPlaying && !videoUnmounted;
 
 
   useEffect(() => {
