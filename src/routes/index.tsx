@@ -426,18 +426,21 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
         </div>
       </div>
 
-      {/* Always-mounted hidden preloader video; becomes visible on play */}
+      {/* Always-mounted hidden preloader video; becomes a fullscreen overlay only after wallet confirms the mint tx */}
       {!videoUnmounted && (
         <div
-          aria-hidden={!showVideoOverlay}
+          aria-hidden={!showVideoOverlay && !showWaitingFade}
           style={{
             position: "fixed",
-            inset: 0,
-            zIndex: showVideoOverlay ? 9999 : -1,
-            background: "#000",
-            opacity: showVideoOverlay ? (videoFading ? 0 : 1) : 0,
-            transition: "opacity 0.6s ease-out",
-            pointerEvents: showVideoOverlay && !videoFading ? "auto" : "none",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: (showVideoOverlay || showWaitingFade) ? 9999 : -1,
+            background: "#FFFFFF",
+            opacity: (showVideoOverlay || showWaitingFade) ? (videoFading ? 0 : 1) : 0,
+            transition: "opacity 0.4s ease-out",
+            pointerEvents: (showVideoOverlay || showWaitingFade) && !videoFading ? "auto" : "none",
           }}
         >
           <video
@@ -453,24 +456,10 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
               objectFit: "cover",
               display: showVideoOverlay ? "block" : "none",
               pointerEvents: "none",
+              background: "#FFFFFF",
             }}
           />
         </div>
-      )}
-
-      {/* Soft fade-to-black while waiting for video buffer after wallet confirm */}
-      {showWaitingFade && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9998,
-            background: "#000",
-            opacity: 0.85,
-            transition: "opacity 0.4s ease-out",
-            pointerEvents: "none",
-          }}
-        />
       )}
     </div>
   );
