@@ -191,12 +191,12 @@ export function MintFortuneButton({
   }, [fortune, onMintResolved, onRarityRevealed, onWalletConfirmed]);
 
   const label: Record<MintStatus, string> = {
-    idle: "→ Reveal Rarity • Mint on Base — $1",
+    idle: "→ Reveal Rarity • Mint on Base",
     switching_network: "Switching to Base…",
     awaiting_wallet: "Confirm in wallet…",
     minting: "Minting…",
     success: "✦ Minted!",
-    error: "→ Try again — $1",
+    error: "→ Try again",
   };
 
   const isIdle = status === "idle" || status === "error";
@@ -207,15 +207,15 @@ export function MintFortuneButton({
         onClick={() => !isLoading && mint()}
         disabled={isLoading}
         style={{
-          padding: "16px 36px",
+          padding: "13px 30px",
           borderRadius: "999px",
-          border: `1.5px solid ${colors.accent}`,
+          border: `1px solid ${colors.accent}`,
           background: isIdle ? colors.accent : "transparent",
           color: isIdle ? colors.text : colors.accent,
           fontFamily: "Georgia, serif",
-          fontSize: "15px",
-          fontWeight: 600,
-          letterSpacing: "1.2px",
+          fontSize: "14px",
+          fontWeight: 500,
+          letterSpacing: "1px",
           cursor: isLoading ? "not-allowed" : "pointer",
           opacity: isLoading ? 0.6 : 1,
           boxShadow: `0 8px 24px ${colors.glow}, 0 0 32px ${colors.glow}`,
@@ -242,14 +242,9 @@ export function MintFortuneButton({
       </button>
 
       {isIdle && (
-        <>
-          <span style={{ fontSize: "12px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.95, textAlign: "center" }}>
-            Only minted fortunes reveal rarity
-          </span>
-          <span style={{ fontSize: "11px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.55, textAlign: "center" }}>
-            Reveal your fortune's rarity and mint it onchain
-          </span>
-        </>
+        <span style={{ fontSize: "12px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.85, textAlign: "center" }}>
+          Only minted fortunes reveal rarity (~$1 mint)
+        </span>
       )}
 
       {isLoading && (

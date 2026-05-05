@@ -421,10 +421,6 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
               onWalletConfirmed={handleWalletConfirmed}
             />
           )}
-          <div className="reveal-credit">
-            Made by{" "}
-            <a href="https://x.com/ZaksansPG" target="_blank" rel="noopener noreferrer">Zaksans</a>
-          </div>
         </div>
       </div>
 
