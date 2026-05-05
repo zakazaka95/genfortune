@@ -82,7 +82,8 @@ function CookieVisual({ phase }: { phase: Phase }) {
         width={240}
         height={240}
         draggable={false}
-        style={{ position: "relative", zIndex: 1, width: 240, height: 240, objectFit: "contain", pointerEvents: "none", animation: "cookieFloat 10s ease-in-out infinite" }}
+        className="cookie-img"
+        style={{ position: "relative", zIndex: 1, width: 240, height: 240, objectFit: "contain", pointerEvents: "none", animation: "cookieFloat 10s ease-in-out infinite", mixBlendMode: "multiply", background: "transparent" }}
       />
       <div className="cookie-shadow" />
     </div>
