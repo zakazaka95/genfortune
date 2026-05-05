@@ -164,7 +164,7 @@ export function MintFortuneButton({
       setError(err.code === 4001 ? "Transaction rejected." : (err.message ?? "Mint failed."));
       setStatus("error");
     }
-  }, [fortune, onRarityRevealed]);
+  }, [fortune, onRarityRevealed, onWalletConfirmed]);
 
   const label: Record<MintStatus, string> = {
     idle: "✦ Mint as NFT on Base",
