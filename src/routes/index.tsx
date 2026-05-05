@@ -368,6 +368,31 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           </div>
         </div>
       </div>
+
+      {videoActive && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "#000",
+            opacity: videoFading ? 0 : 1,
+            transition: "opacity 0.6s ease-out",
+            pointerEvents: "auto",
+          }}
+        >
+          <video
+            ref={revealVideoRef}
+            src="/reveal.mp4"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            onEnded={() => setVideoEnded(true)}
+            style={{ width: "100vw", height: "100vh", objectFit: "cover", display: "block" }}
+          />
+        </div>
+      )}
     </div>
   );
 }
