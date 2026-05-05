@@ -358,37 +358,44 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
 
         <div className={`reveal-actions ${showButtons ? "in" : ""}`}>
           {minted ? (
-            <div className="reveal-cta-row reveal-cta-row-in">
-              {openSeaUrl && (
+            <div className="reveal-postmint reveal-cta-row-in">
+              <div className="reveal-postmint-primary">
+                <button
+                  onClick={onOpenAnother}
+                  className="pm-btn pm-btn-primary"
+                >
+                  Open Another
+                </button>
                 <a
-                  href={openSeaUrl}
+                  href="https://genmarket.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`reveal-cta reveal-cta-secondary reveal-cta-${activeRarity.toLowerCase()}`}
+                  className="pm-btn pm-btn-secondary"
                 >
-                  View on OpenSea ↗
+                  List on GenMarket ↗
                 </a>
-              )}
-              <a
-                href="https://genmarket.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`reveal-cta reveal-cta-primary reveal-cta-${activeRarity.toLowerCase()}`}
-              >
-                List on GenMarket ↗
-              </a>
-              <button
-                onClick={() => {
-                  const text = `The AI gods blessed me with a ${activeRarity} fortune:\n\n"${result.message}"\n\nCookie #${result.cookie_number}\n\nOpen yours 👇\nhttps://genfortune.xyz`;
-                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
-                }}
-                className={`reveal-cta reveal-cta-secondary reveal-cta-${activeRarity.toLowerCase()}`}
-              >
-                Share on X ✦
-              </button>
-              <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-primary reveal-cta-${activeRarity.toLowerCase()}`}>
-                Open Another
-              </button>
+              </div>
+              <div className="reveal-postmint-secondary">
+                {openSeaUrl && (
+                  <a
+                    href={openSeaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pm-link"
+                  >
+                    View on OpenSea ↗
+                  </a>
+                )}
+                <button
+                  onClick={() => {
+                    const text = `The AI gods blessed me with a ${activeRarity} fortune:\n\n"${result.message}"\n\nCookie #${result.cookie_number}\n\nOpen yours 👇\nhttps://genfortune.xyz`;
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+                  }}
+                  className="pm-link"
+                >
+                  Share on X ✦
+                </button>
+              </div>
             </div>
           ) : (
             <>
