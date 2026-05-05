@@ -220,6 +220,15 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       <div className="world-vignette" />
       <div className="world-aurora" />
 
+      {(shockwaveActive || rarityPhase === "revealed") && revealedRarity && (
+        <div
+          key={`shockwave-${revealedRarity}`}
+          className={`rarity-shockwave ${shockwaveActive ? "rarity-shockwave-active" : "rarity-shockwave-done"}`}
+          style={{ background: cfg.rarityColor }}
+          aria-hidden="true"
+        />
+      )}
+
       {stars.length > 0 && (
         <div className="world-stars">
           {stars.map((s, i) => (
