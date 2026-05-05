@@ -174,6 +174,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const [videoEnded, setVideoEnded] = useState(false);
   const [videoFading, setVideoFading] = useState(false);
   const [videoUnmounted, setVideoUnmounted] = useState(false);
+  const [switchingNetwork, setSwitchingNetwork] = useState(false);
   const revealVideoRef = useRef<HTMLVideoElement | null>(null);
   const minted = mintStatus === "success" && revealedRarity !== null && videoEnded;
   const activeRarity: Rarity = revealedRarity ?? "NORMAL";
@@ -361,10 +362,23 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
             <div className="reveal-postmint reveal-cta-row-in">
               <div className="reveal-postmint-primary">
                 <button
-                  onClick={onOpenAnother}
+                  onClick={async () => {
+                    if (switchingNetwork) return;
+                    setSwitchingNetwork(true);
+                    try {
+                      await ensureStudioNetwork();
+                      onOpenAnother();
+                    } catch {
+                      /* user rejected — keep current screen */
+                    } finally {
+                      setSwitchingNetwork(false);
+                    }
+                  }}
+                  disabled={switchingNetwork}
                   className="pm-btn pm-btn-secondary"
+                  style={switchingNetwork ? { opacity: 0.6, cursor: "wait" } : undefined}
                 >
-                  Open Another
+                  {switchingNetwork ? "Switching…" : "Open Another"}
                 </button>
                 <a
                   href="https://genmarket.app"
