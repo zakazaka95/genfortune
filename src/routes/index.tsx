@@ -27,13 +27,12 @@ type Phase = "idle" | "connected" | "cracking" | "revealing" | "revealed";
 type Rarity = "LEGENDARY" | "RARE" | "UNIQUE" | "NORMAL";
 
 interface FortuneResult {
-  rarity: Rarity;
   message: string;
   cookie_number: number;
   txHash?: string;
 }
 
-const CONTRACT_ADDRESS = "0xC4535FD685a83b6516000A99c7f03ba335a2BCC9";
+const CONTRACT_ADDRESS = "0x1Ce2090B114FeF16bBB554DD74f1167744552414";
 const STUDIO_CHAIN_ID_HEX = "0xF22F";
 
 const STUDIO_CHAIN_PARAMS = {
