@@ -138,9 +138,9 @@ const RARITY_WORLDS: Record<Rarity, {
   starCount: number;
   rayCount: number;
 }> = {
-  LEGENDARY: { worldClass: "world-legendary", rarityColor: "#E8B948", textColor: "#FFF6DC", metaColor: "rgba(232,185,72,0.55)", rarityLetterSpacing: "0.55em", particleCount: 60, starCount: 0, rayCount: 16 },
-  UNIQUE:    { worldClass: "world-unique",    rarityColor: "#C8A8FF", textColor: "#F0E8FF", metaColor: "rgba(200,168,255,0.55)", rarityLetterSpacing: "0.5em",  particleCount: 36, starCount: 80, rayCount: 0 },
-  RARE:      { worldClass: "world-rare",      rarityColor: "#7FC8FF", textColor: "#EAF6FF", metaColor: "rgba(127,200,255,0.55)", rarityLetterSpacing: "0.45em", particleCount: 22, starCount: 0,  rayCount: 0 },
+  LEGENDARY: { worldClass: "world-legendary", rarityColor: "#F5C542", textColor: "#FFF6DC", metaColor: "rgba(245,197,66,0.55)", rarityLetterSpacing: "0.55em", particleCount: 60, starCount: 0, rayCount: 16 },
+  UNIQUE:    { worldClass: "world-unique",    rarityColor: "#B47FFF", textColor: "#F0E8FF", metaColor: "rgba(180,127,255,0.55)", rarityLetterSpacing: "0.5em",  particleCount: 36, starCount: 80, rayCount: 0 },
+  RARE:      { worldClass: "world-rare",      rarityColor: "#4FC3F7", textColor: "#EAF6FF", metaColor: "rgba(79,195,247,0.55)", rarityLetterSpacing: "0.45em", particleCount: 22, starCount: 0,  rayCount: 0 },
   NORMAL:    { worldClass: "world-normal",    rarityColor: "#888888", textColor: "#2A2724", metaColor: "rgba(136,136,136,0.7)",  rarityLetterSpacing: "0.4em",  particleCount: 14, starCount: 0,  rayCount: 0 },
 };
 
