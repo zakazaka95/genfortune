@@ -675,7 +675,7 @@ function FortuneCookieApp() {
       )}
 
       {phase !== "revealed" && phase !== "revealing" && (
-        <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 1, pointerEvents: "none" }}>
+        <div style={{ marginBottom: 40, position: "relative", zIndex: 1 }}>
           <CookieVisual phase={phase} />
         </div>
       )}
