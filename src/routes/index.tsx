@@ -221,11 +221,15 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     if (!pendingRarity || revealedRarity || videoFading) return;
     // If video is currently playing, wait for it to end
     if (videoPlaying && !videoEnded) return;
+    setRevealedRarity(pendingRarity);
+    if (!videoPlaying) {
+      setVideoUnmounted(true);
+      return;
+    }
     setVideoFading(true);
     const t = setTimeout(() => {
-      setRevealedRarity(pendingRarity);
       setVideoUnmounted(true);
-    }, videoPlaying ? 600 : 0);
+    }, 600);
     return () => clearTimeout(t);
   }, [videoEnded, pendingRarity, videoPlaying, videoFading, revealedRarity]);
 
