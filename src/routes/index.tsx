@@ -174,6 +174,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const [videoEnded, setVideoEnded] = useState(false);
   const [videoFading, setVideoFading] = useState(false);
   const [videoUnmounted, setVideoUnmounted] = useState(false);
+  const [switchingNetwork, setSwitchingNetwork] = useState(false);
   const revealVideoRef = useRef<HTMLVideoElement | null>(null);
   const minted = mintStatus === "success" && revealedRarity !== null && videoEnded;
   const activeRarity: Rarity = revealedRarity ?? "NORMAL";
