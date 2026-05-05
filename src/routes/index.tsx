@@ -344,7 +344,8 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
             fortune={{ text: result.message, cookieNumber: result.cookie_number }}
             rarity={activeRarity}
             onStatusChange={setMintStatus}
-            onRarityRevealed={setRevealedRarity}
+            onRarityRevealed={handleRarityFromMint}
+            onWalletConfirmed={handleWalletConfirmed}
           />
           {minted && (
             <div className="reveal-cta-row reveal-cta-row-in">
