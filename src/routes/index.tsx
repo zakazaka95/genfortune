@@ -384,29 +384,51 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
         </div>
       </div>
 
-      {videoActive && (
+      {/* Always-mounted hidden preloader video; becomes visible on play */}
+      {!videoUnmounted && (
         <div
+          aria-hidden={!showVideoOverlay}
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 9999,
+            zIndex: showVideoOverlay ? 9999 : -1,
             background: "#000",
-            opacity: videoFading ? 0 : 1,
+            opacity: showVideoOverlay ? (videoFading ? 0 : 1) : 0,
             transition: "opacity 0.6s ease-out",
-            pointerEvents: "auto",
+            pointerEvents: showVideoOverlay && !videoFading ? "auto" : "none",
           }}
         >
           <video
             ref={revealVideoRef}
             src="/reveal.mp4"
-            autoPlay
             muted
             playsInline
             preload="auto"
             onEnded={() => setVideoEnded(true)}
-            style={{ width: "100vw", height: "100vh", objectFit: "cover", display: "block" }}
+            style={{
+              width: "100vw",
+              height: "100vh",
+              objectFit: "cover",
+              display: showVideoOverlay ? "block" : "none",
+              pointerEvents: "none",
+            }}
           />
         </div>
+      )}
+
+      {/* Soft fade-to-black while waiting for video buffer after wallet confirm */}
+      {showWaitingFade && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9998,
+            background: "#000",
+            opacity: 0.85,
+            transition: "opacity 0.4s ease-out",
+            pointerEvents: "none",
+          }}
+        />
       )}
     </div>
   );
