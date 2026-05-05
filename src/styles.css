@@ -1348,12 +1348,13 @@
   border-color: rgba(255,255,255,0.6);
 }
 .world-rare .pm-btn-secondary {
-  color: #0a2030;
-  border-color: rgba(10,32,48,0.35);
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.8);
+  opacity: 1;
 }
 .world-rare .pm-btn-secondary:hover {
-  background: rgba(10,32,48,0.06);
-  border-color: rgba(10,32,48,0.6);
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,1);
 }
 .world-normal .pm-btn-secondary {
   color: #1a1a1a;
@@ -1393,7 +1394,7 @@
   color: rgba(255,255,255,0.92);
   text-shadow: 0 0 10px rgba(0,0,0,0.4);
 }
-.world-rare .pm-link { color: rgba(10,32,48,0.85); }
+.world-rare .pm-link { color: rgba(255,255,255,0.9); text-shadow: 0 0 10px rgba(0,0,0,0.4); }
 .world-normal .pm-link { color: rgba(20,20,20,0.85); }
 
 @media (max-width: 480px) {
