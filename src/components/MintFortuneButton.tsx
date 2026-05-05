@@ -74,11 +74,13 @@ export function MintFortuneButton({
   rarity,
   onStatusChange,
   onRarityRevealed,
+  onWalletConfirmed,
 }: {
   fortune: FortuneData;
   rarity: Rarity;
   onStatusChange?: (status: MintStatus) => void;
   onRarityRevealed?: (rarity: Rarity) => void;
+  onWalletConfirmed?: (txHash: string) => void;
 }) {
   const [status, setStatus] = useState<MintStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -130,6 +132,7 @@ export function MintFortuneButton({
 
       setTxHash(hash);
       setStatus("minting");
+      onWalletConfirmed?.(hash);
 
       const receipt = await pollReceipt(eth, hash);
 
@@ -161,7 +164,7 @@ export function MintFortuneButton({
       setError(err.code === 4001 ? "Transaction rejected." : (err.message ?? "Mint failed."));
       setStatus("error");
     }
-  }, [fortune, onRarityRevealed]);
+  }, [fortune, onRarityRevealed, onWalletConfirmed]);
 
   const label: Record<MintStatus, string> = {
     idle: "✦ Mint as NFT on Base",
