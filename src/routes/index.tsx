@@ -412,26 +412,14 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
               </div>
             </div>
           ) : (
-            <>
-              <button
-                onClick={() => {
-                  const rarityPart = revealedRarity ? `a ${revealedRarity} ` : "an AI ";
-                  const text = `The AI gods blessed me with ${rarityPart}fortune:\n\n"${result.message}"\n\nPowered by @GenLayer — the only chain where AI runs at consensus layer.\n\nOpen yours 👇\nhttps://genfortune.xyz`;
-                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
-                }}
-                className={`reveal-share reveal-share-${activeRarity.toLowerCase()}`}
-              >
-                Share on X ✦
-              </button>
-              <MintFortuneButton
-                fortune={{ text: result.message, cookieNumber: result.cookie_number }}
-                rarity={activeRarity}
-                onStatusChange={setMintStatus}
-                onRarityRevealed={handleRarityFromMint}
-                onMintResolved={handleMintResolved}
-                onWalletConfirmed={handleWalletConfirmed}
-              />
-            </>
+            <MintFortuneButton
+              fortune={{ text: result.message, cookieNumber: result.cookie_number }}
+              rarity={activeRarity}
+              onStatusChange={setMintStatus}
+              onRarityRevealed={handleRarityFromMint}
+              onMintResolved={handleMintResolved}
+              onWalletConfirmed={handleWalletConfirmed}
+            />
           )}
           <div className="reveal-credit">
             Made by{" "}
