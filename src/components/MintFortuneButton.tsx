@@ -2,6 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 
 export type Rarity = "NORMAL" | "RARE" | "UNIQUE" | "LEGENDARY";
 
+export interface MintRevealData {
+  rarity: Rarity;
+  rarityColor: string;
+  tokenId: string | null;
+  txHash: string;
+}
+
 export interface FortuneData {
   text: string;
   cookieNumber: number;
@@ -63,7 +70,7 @@ const RARITY_COLORS: Record<Rarity, { accent: string; glow: string; text: string
   LEGENDARY: { accent: "#F5C542", glow: "rgba(245,197,66,0.35)", text: "#0A0800" },
   UNIQUE:    { accent: "#B47FFF", glow: "rgba(180,127,255,0.35)", text: "#060510" },
   RARE:      { accent: "#4FC3F7", glow: "rgba(79,195,247,0.35)", text: "#020609" },
-  NORMAL:    { accent: "#1A1A1A", glow: "rgba(0,0,0,0.15)", text: "#F8F6F0" },
+  NORMAL:    { accent: "#888888", glow: "rgba(136,136,136,0.25)", text: "#F8F6F0" },
 };
 
 // keccak256("FortuneMinted(address,uint256,uint8,uint256)")
@@ -74,12 +81,14 @@ export function MintFortuneButton({
   rarity,
   onStatusChange,
   onRarityRevealed,
+  onMintResolved,
   onWalletConfirmed,
 }: {
   fortune: FortuneData;
   rarity: Rarity;
   onStatusChange?: (status: MintStatus) => void;
   onRarityRevealed?: (rarity: Rarity) => void;
+  onMintResolved?: (data: MintRevealData) => void;
   onWalletConfirmed?: (txHash: string) => void;
 }) {
   const [status, setStatus] = useState<MintStatus>("idle");
@@ -142,8 +151,12 @@ export function MintFortuneButton({
         l.address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()
       );
       let revealedRarity: Rarity | null = null;
+      let resolvedTokenId: string | null = null;
       if (fortuneLog) {
-        if (fortuneLog.topics?.[2]) setTokenId(BigInt(fortuneLog.topics[2]).toString());
+        if (fortuneLog.topics?.[2]) {
+          resolvedTokenId = BigInt(fortuneLog.topics[2]).toString();
+          setTokenId(resolvedTokenId);
+        }
         const data: string = fortuneLog.data || "0x";
         if (data.length >= 2 + 64) {
           const rarityHex = data.slice(2, 2 + 64);
@@ -155,17 +168,27 @@ export function MintFortuneButton({
         // Fallback: ERC721 Transfer for tokenId; default rarity so reveal still proceeds
         const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
         const log = receipt.logs?.find((l: any) => l.topics?.[0]?.toLowerCase() === TRANSFER_TOPIC);
-        if (log?.topics?.[3]) setTokenId(BigInt(log.topics[3]).toString());
+        if (log?.topics?.[3]) {
+          resolvedTokenId = BigInt(log.topics[3]).toString();
+          setTokenId(resolvedTokenId);
+        }
       }
       // Always notify rarity (default NORMAL) so the post-mint UI never gets stuck
-      onRarityRevealed?.(revealedRarity ?? "NORMAL");
+      const finalRarity = revealedRarity ?? "NORMAL";
+      onRarityRevealed?.(finalRarity);
+      onMintResolved?.({
+        rarity: finalRarity,
+        rarityColor: RARITY_COLORS[finalRarity].accent,
+        tokenId: resolvedTokenId,
+        txHash: hash,
+      });
 
       setStatus("success");
     } catch (err: any) {
       setError(err.code === 4001 ? "Transaction rejected." : (err.message ?? "Mint failed."));
       setStatus("error");
     }
-  }, [fortune, onRarityRevealed, onWalletConfirmed]);
+  }, [fortune, onMintResolved, onRarityRevealed, onWalletConfirmed]);
 
   const label: Record<MintStatus, string> = {
     idle: "✦ Mint as NFT on Base",
