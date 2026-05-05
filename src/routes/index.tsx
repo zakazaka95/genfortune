@@ -183,77 +183,27 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Rarity reveal: "hidden" → "placeholder" (neutral white) → "ceremony" (full sequence) → "revealed"
-  const [rarityPhase, setRarityPhase] = useState<"hidden" | "placeholder" | "ceremony" | "revealed">("hidden");
-
-  // Show neutral placeholder once the fortune step kicks in (pre-mint)
+  // Once a rarity is revealed (after mint), advance to "rarity" visual state
   useEffect(() => {
-    if (rarityPhase === "hidden" && (step === "fortune" || step === "meta" || step === "settled")) {
-      setRarityPhase("placeholder");
+    if (revealedRarity && (step === "settled" || step === "meta" || step === "fortune")) {
+      // ensure the rarity word gets shown
+      // step "settled" already shows everything; we toggle showRarity via revealedRarity flag
     }
-  }, [step, rarityPhase]);
-
-  // When rarity arrives after mint, run the ceremony.
-  // Total ~5200ms. The underlying UI swaps to rarity color exactly at the burst moment (3200ms).
-  useEffect(() => {
-    if (!revealedRarity) return;
-    setRarityPhase("ceremony");
-    // Swap underlying UI color at the exact burst frame so the white flash hides the change.
-    const swapAt = 3200;
-    const t1 = setTimeout(() => setRarityPhase("revealed"), swapAt);
-    return () => { clearTimeout(t1); };
-  }, [revealedRarity]);
+  }, [revealedRarity, step]);
 
   const showFortune = step === "fortune" || step === "meta"    || step === "settled";
   const showMeta    = step === "meta"    || step === "settled";
   const showButtons = step === "settled";
-  const showRarityBlock = rarityPhase !== "hidden";
-  const rarityRevealed = rarityPhase === "revealed" && revealedRarity !== null;
-  const placeholderVisible = rarityPhase === "placeholder";
-  const ceremonyActive = rarityPhase === "ceremony";
-
+  const showRarity  = revealedRarity !== null && (step === "fortune" || step === "meta" || step === "settled");
 
   const words = result.message.split(" ");
   let runningCharIdx = 0;
 
   return (
-    <div className={`reveal-world ${cfg.worldClass} ${step !== "enter" ? "reveal-world-in" : ""} ${ceremonyActive ? "reveal-world-dimmed" : ""}`}>
+    <div className={`reveal-world ${cfg.worldClass} ${step !== "enter" ? "reveal-world-in" : ""}`}>
       <div className="world-base" />
       <div className="world-vignette" />
       <div className="world-aurora" />
-
-      {(ceremonyActive || rarityPhase === "revealed") && revealedRarity && (
-        <div
-          className={`rarity-ceremony ${ceremonyActive ? "rarity-ceremony-running" : "rarity-ceremony-done"}`}
-          style={{ ['--rarity-color' as any]: cfg.rarityColor } as React.CSSProperties}
-          aria-hidden="true"
-        >
-          <div className="ceremony-veil" />
-          <div className="ceremony-dust">
-            {Array.from({ length: 28 }).map((_, i) => {
-              const angle = (i / 28) * Math.PI * 2 + (i % 3) * 0.3;
-              const dist = 30 + (i * 53) % 35;
-              return (
-                <span
-                  key={i}
-                  className="ceremony-dust-mote"
-                  style={{
-                    left: `calc(50% + ${Math.cos(angle) * dist}vmin)`,
-                    top: `calc(50% + ${Math.sin(angle) * dist}vmin)`,
-                    animationDelay: `${800 + (i * 37) % 600}ms`,
-                  }}
-                />
-              );
-            })}
-          </div>
-          <div className="ceremony-light" />
-          <div className="ceremony-ring" />
-          <div className="ceremony-burst" />
-          <div className="ceremony-flash" />
-          <div className="ceremony-tint" />
-        </div>
-      )}
-
 
       {stars.length > 0 && (
         <div className="world-stars">
@@ -296,38 +246,16 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       </div>
 
       <div className="reveal-composition">
-        {showRarityBlock && (
-          <div
-            className={`reveal-rarity-word in ${rarityRevealed ? "reveal-rarity-colored reveal-rarity-settle" : ""}`}
-            style={{
-              color: rarityRevealed ? cfg.rarityColor : "#FFFFFF",
-              letterSpacing: cfg.rarityLetterSpacing,
-              ['--rarity-color' as any]: cfg.rarityColor,
-            } as React.CSSProperties}
-          >
-            {rarityRevealed && revealedRarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
-            <span
-              className="reveal-rarity-text"
-              style={{ opacity: placeholderVisible || rarityRevealed ? 1 : 0, transition: "opacity 300ms ease" }}
-            >
-              {rarityRevealed ? revealedRarity : "✦"}
-            </span>
-            <span
-              className="reveal-rarity-rule reveal-rarity-rule-animated"
-              style={{ background: rarityRevealed ? cfg.rarityColor : "rgba(255,255,255,0.5)" }}
-              data-revealed={rarityRevealed ? "true" : "false"}
-            />
+        {revealedRarity && (
+          <div className={`reveal-rarity-word ${showRarity ? "in" : ""}`}
+            style={{ color: cfg.rarityColor, letterSpacing: cfg.rarityLetterSpacing }}>
+            {revealedRarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
+            <span className="reveal-rarity-text">{revealedRarity}</span>
+            <span className="reveal-rarity-rule" style={{ background: cfg.rarityColor }} />
           </div>
         )}
 
-        <p
-          className={`reveal-fortune ${showFortune ? "in" : ""} ${rarityRevealed ? "reveal-fortune-pulse" : ""}`}
-          style={{
-            color: cfg.textColor,
-            ['--rarity-color' as any]: cfg.rarityColor,
-          } as React.CSSProperties}
-        >
-
+        <p className={`reveal-fortune ${showFortune ? "in" : ""}`} style={{ color: cfg.textColor }}>
           <span className="reveal-quote" aria-hidden="true">“</span>
           {words.map((word, wi) => (
             <span key={wi} className="reveal-word">
