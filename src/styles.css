@@ -1245,3 +1245,36 @@
   .reveal-rarity-word { margin-bottom: 40px; }
   .reveal-composition { padding: 32px 20px; }
 }
+
+/* ──────────────────────────────────────────────────────────
+   RARITY SHOCKWAVE — full-screen pack-opening reveal
+   ────────────────────────────────────────────────────────── */
+.rarity-shockwave {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 80px;
+  height: 80px;
+  margin-left: -40px;
+  margin-top: -40px;
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform, opacity;
+  box-shadow: 0 0 80px 0 currentColor;
+}
+.rarity-shockwave-active {
+  animation: rarity-shockwave-seq 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.rarity-shockwave-done {
+  opacity: 0;
+  transform: scale(0);
+}
+@keyframes rarity-shockwave-seq {
+  0%   { transform: scale(0);    opacity: 1; }
+  42%  { transform: scale(30);   opacity: 1; } /* ~500ms expand */
+  75%  { transform: scale(30);   opacity: 1; } /* hold ~400ms */
+  100% { transform: scale(30);   opacity: 0; } /* fade out ~300ms */
+}
