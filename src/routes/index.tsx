@@ -4,7 +4,7 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 import silverCookieImg from "../assets/silver-cookie.png";
-import { MintFortuneButton, type MintStatus } from "../components/MintFortuneButton";
+import { MintFortuneButton, type MintRevealData, type MintStatus } from "../components/MintFortuneButton";
 import { IntroVideo } from "../components/IntroVideo";
 
 // @ts-ignore — patch BigInt serialization for genlayer-js internals
@@ -167,6 +167,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
   const [revealedRarity, setRevealedRarity] = useState<Rarity | null>(null);
   const [pendingRarity, setPendingRarity] = useState<Rarity | null>(null);
+  const [mintReveal, setMintReveal] = useState<MintRevealData | null>(null);
   const [walletConfirmed, setWalletConfirmed] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
@@ -174,7 +175,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const [videoFading, setVideoFading] = useState(false);
   const [videoUnmounted, setVideoUnmounted] = useState(false);
   const revealVideoRef = useRef<HTMLVideoElement | null>(null);
-  const minted = mintStatus === "success" && revealedRarity !== null;
+  const minted = mintStatus === "success" && revealedRarity !== null && videoEnded;
   const activeRarity: Rarity = revealedRarity ?? "NORMAL";
   const cfg = RARITY_WORLDS[activeRarity];
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -209,6 +210,10 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   // Intercept rarity from mint button — stash until video ends
   const handleRarityFromMint = useCallback((r: Rarity) => {
     setPendingRarity(r);
+  }, []);
+
+  const handleMintResolved = useCallback((data: MintRevealData) => {
+    setMintReveal(data);
   }, []);
 
   // When rarity is available AND (video ended OR video never started playing) → reveal
@@ -248,10 +253,13 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     }
   }, [revealedRarity, step]);
 
-  const showFortune = step === "fortune" || step === "meta"    || step === "settled";
-  const showMeta    = step === "meta"    || step === "settled";
+  const showFortune = minted || step === "fortune" || step === "meta" || step === "settled";
+  const showMeta = minted || step === "meta" || step === "settled";
   const showButtons = step === "settled";
-  const showRarity  = revealedRarity !== null && (step === "fortune" || step === "meta" || step === "settled");
+  const showRarity = minted || (revealedRarity !== null && (step === "fortune" || step === "meta" || step === "settled"));
+  const openSeaUrl = mintReveal?.tokenId
+    ? `https://opensea.io/assets/base/0x33007651eb41c8E2115C2c9Dc65C68d2c05F239B/${mintReveal.tokenId}`
+    : null;
 
   const words = result.message.split(" ");
   let runningCharIdx = 0;
@@ -334,7 +342,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
 
         <div className={`reveal-meta-row ${showMeta ? "in" : ""}`} style={{ color: cfg.metaColor }}>
           <span>Cookie #{result.cookie_number}</span>
-          {result.txHash && (
+          {!minted && result.txHash && (
             <>
               <span className="reveal-meta-dot">·</span>
               <a href={`https://explorer-studio.genlayer.com/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="reveal-meta-link" style={{ color: cfg.metaColor }}>
@@ -345,28 +353,18 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
         </div>
 
         <div className={`reveal-actions ${showButtons ? "in" : ""}`}>
-          <button
-            onClick={() => {
-              const rarityPart = revealedRarity ? `a ${revealedRarity} ` : "an AI ";
-              const text = `The AI gods blessed me with ${rarityPart}fortune:\n\n"${result.message}"\n\nPowered by @GenLayer — the only chain where AI runs at consensus layer.\n\nOpen yours 👇\nhttps://genfortune.xyz`;
-              window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
-            }}
-            className={`reveal-share reveal-share-${activeRarity.toLowerCase()}`}
-          >
-            Share on X ✦
-          </button>
-          <MintFortuneButton
-            fortune={{ text: result.message, cookieNumber: result.cookie_number }}
-            rarity={activeRarity}
-            onStatusChange={setMintStatus}
-            onRarityRevealed={handleRarityFromMint}
-            onWalletConfirmed={handleWalletConfirmed}
-          />
-          {minted && (
+          {minted ? (
             <div className="reveal-cta-row reveal-cta-row-in">
-              <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-secondary reveal-cta-${activeRarity.toLowerCase()}`}>
-                Open Another
-              </button>
+              {openSeaUrl && (
+                <a
+                  href={openSeaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`reveal-cta reveal-cta-secondary reveal-cta-${activeRarity.toLowerCase()}`}
+                >
+                  View on OpenSea ↗
+                </a>
+              )}
               <a
                 href="https://genmarket.app"
                 target="_blank"
@@ -375,7 +373,40 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
               >
                 List on GenMarket ↗
               </a>
+              <button
+                onClick={() => {
+                  const text = `The AI gods blessed me with a ${activeRarity} fortune:\n\n"${result.message}"\n\nCookie #${result.cookie_number}\n\nOpen yours 👇\nhttps://genfortune.xyz`;
+                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+                }}
+                className={`reveal-cta reveal-cta-secondary reveal-cta-${activeRarity.toLowerCase()}`}
+              >
+                Share on X ✦
+              </button>
+              <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-primary reveal-cta-${activeRarity.toLowerCase()}`}>
+                Open Another
+              </button>
             </div>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  const rarityPart = revealedRarity ? `a ${revealedRarity} ` : "an AI ";
+                  const text = `The AI gods blessed me with ${rarityPart}fortune:\n\n"${result.message}"\n\nPowered by @GenLayer — the only chain where AI runs at consensus layer.\n\nOpen yours 👇\nhttps://genfortune.xyz`;
+                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+                }}
+                className={`reveal-share reveal-share-${activeRarity.toLowerCase()}`}
+              >
+                Share on X ✦
+              </button>
+              <MintFortuneButton
+                fortune={{ text: result.message, cookieNumber: result.cookie_number }}
+                rarity={activeRarity}
+                onStatusChange={setMintStatus}
+                onRarityRevealed={handleRarityFromMint}
+                onMintResolved={handleMintResolved}
+                onWalletConfirmed={handleWalletConfirmed}
+              />
+            </>
           )}
           <div className="reveal-credit">
             Made by{" "}
