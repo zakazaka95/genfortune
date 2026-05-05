@@ -76,7 +76,7 @@ function CookieVisual({ phase }: { phase: Phase }) {
     <div className={phase === "cracking" ? "cookie-cracking" : "cookie-breathe"}>
       <div className="cookie-specular" />
       <div className={`cookie-inner-glow ${isConnected ? "cookie-inner-glow-active" : ""}`} />
-      <img src={silverCookieImg} alt="Fortune cookie" width={624} height={624} className="cookie-img" style={{ position: "relative", zIndex: 1, background: "transparent", pointerEvents: "none" }} />
+      <img src={silverCookieImg} alt="Fortune cookie" width={420} height={420} className="cookie-img" style={{ position: "relative", zIndex: 1, background: "transparent", pointerEvents: "none" }} />
       <div className="cookie-shadow" />
     </div>
   );
