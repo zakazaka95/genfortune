@@ -112,7 +112,7 @@ function RevealingState() {
         {PARTICLES.map((p, i) => (
           <span key={i} className="revealing-particle" style={{ '--p-angle': `${p.angle}rad`, '--p-delay': `${p.delay}s`, '--p-duration': `${p.duration}s`, '--p-size': `${p.size}px`, '--p-opacity': p.opacity } as React.CSSProperties} />
         ))}
-        <img src={silverCookieImg} alt="Cookie opening" width={210} height={210} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 2 }} className="revealing-cookie" />
+        <img src={silverCookieImg} alt="Cookie opening" width={420} height={420} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 2 }} className="revealing-cookie" />
       </div>
       <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 400, letterSpacing: "0.25em", textTransform: "uppercase", color: "#A8A29E", textAlign: "center", lineHeight: 1.6 }}>
         The oracle is consulting the validators…
