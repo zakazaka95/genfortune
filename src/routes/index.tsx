@@ -166,12 +166,54 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const [step, setStep] = useState<RevealStep>("enter");
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
   const [revealedRarity, setRevealedRarity] = useState<Rarity | null>(null);
+  const [pendingRarity, setPendingRarity] = useState<Rarity | null>(null);
+  const [videoActive, setVideoActive] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [videoFading, setVideoFading] = useState(false);
+  const revealVideoRef = useRef<HTMLVideoElement | null>(null);
   const minted = mintStatus === "success" && revealedRarity !== null;
   const activeRarity: Rarity = revealedRarity ?? "NORMAL";
   const cfg = RARITY_WORLDS[activeRarity];
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
   const particles = useRef(makeParticles(cfg.particleCount, activeRarity.charCodeAt(0))).current;
   const stars = useRef(cfg.starCount > 0 ? makeParticles(cfg.starCount, activeRarity.charCodeAt(1) + 13) : []).current;
+
+  // The moment wallet confirms (tx hash returned), start the reveal video
+  const handleWalletConfirmed = useCallback(() => {
+    setVideoEnded(false);
+    setVideoFading(false);
+    setPendingRarity(null);
+    setVideoActive(true);
+    // play() will be called via ref effect below
+  }, []);
+
+  useEffect(() => {
+    if (videoActive && revealVideoRef.current) {
+      const v = revealVideoRef.current;
+      try { v.currentTime = 0; } catch {}
+      v.play().catch(() => {});
+    }
+  }, [videoActive]);
+
+  // Intercept rarity from mint button — stash until video ends
+  const handleRarityFromMint = useCallback((r: Rarity) => {
+    setPendingRarity(r);
+  }, []);
+
+  // When both video ended AND rarity available → fade overlay, then reveal rarity
+  useEffect(() => {
+    if (!videoActive) return;
+    if (videoEnded && pendingRarity && !videoFading) {
+      setVideoFading(true);
+      const t = setTimeout(() => {
+        setRevealedRarity(pendingRarity);
+        setVideoActive(false);
+        setVideoFading(false);
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [videoEnded, pendingRarity, videoActive, videoFading]);
+
 
   useEffect(() => {
     const timers = timerRefs.current;
