@@ -183,8 +183,8 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Rarity reveal animation: "hidden" → "placeholder" (neutral white) → "fading" → "revealed" (colored)
-  const [rarityPhase, setRarityPhase] = useState<"hidden" | "placeholder" | "fading" | "revealed">("hidden");
+  // Rarity reveal: "hidden" → "placeholder" (neutral white) → "shockwave" (full-screen ripple) → "revealed"
+  const [rarityPhase, setRarityPhase] = useState<"hidden" | "placeholder" | "shockwave" | "revealed">("hidden");
 
   // Show neutral placeholder once the fortune step kicks in (pre-mint)
   useEffect(() => {
@@ -193,11 +193,12 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     }
   }, [step, rarityPhase]);
 
-  // When rarity arrives after mint, run the reveal sequence
+  // When rarity arrives after mint, run the shockwave sequence
   useEffect(() => {
     if (!revealedRarity) return;
-    setRarityPhase("fading");
-    const t = setTimeout(() => setRarityPhase("revealed"), 500); // 200ms fade-out + 300ms pause
+    // Pack-opening: 500ms expand → 400ms hold → 300ms fade out = 1200ms total
+    setRarityPhase("shockwave");
+    const t = setTimeout(() => setRarityPhase("revealed"), 900); // swap colors mid-fade so UI is colored when overlay clears
     return () => clearTimeout(t);
   }, [revealedRarity]);
 
@@ -207,6 +208,8 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const showRarityBlock = rarityPhase !== "hidden";
   const rarityRevealed = rarityPhase === "revealed" && revealedRarity !== null;
   const placeholderVisible = rarityPhase === "placeholder";
+  const shockwaveActive = rarityPhase === "shockwave";
+
 
   const words = result.message.split(" ");
   let runningCharIdx = 0;
@@ -216,6 +219,15 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       <div className="world-base" />
       <div className="world-vignette" />
       <div className="world-aurora" />
+
+      {(shockwaveActive || rarityPhase === "revealed") && revealedRarity && (
+        <div
+          key={`shockwave-${revealedRarity}`}
+          className={`rarity-shockwave ${shockwaveActive ? "rarity-shockwave-active" : "rarity-shockwave-done"}`}
+          style={{ background: cfg.rarityColor }}
+          aria-hidden="true"
+        />
+      )}
 
       {stars.length > 0 && (
         <div className="world-stars">
