@@ -211,21 +211,21 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     setPendingRarity(r);
   }, []);
 
-  // When both video ended AND rarity available → fade overlay, then reveal rarity, then unmount video
+  // When rarity is available AND (video ended OR video never started playing) → reveal
   useEffect(() => {
-    if (!videoPlaying) return;
-    if (videoEnded && pendingRarity && !videoFading) {
-      setVideoFading(true);
-      const t = setTimeout(() => {
-        setRevealedRarity(pendingRarity);
-        setVideoUnmounted(true);
-      }, 600);
-      return () => clearTimeout(t);
-    }
-  }, [videoEnded, pendingRarity, videoPlaying, videoFading]);
+    if (!pendingRarity || revealedRarity || videoFading) return;
+    // If video is currently playing, wait for it to end
+    if (videoPlaying && !videoEnded) return;
+    setVideoFading(true);
+    const t = setTimeout(() => {
+      setRevealedRarity(pendingRarity);
+      setVideoUnmounted(true);
+    }, videoPlaying ? 600 : 0);
+    return () => clearTimeout(t);
+  }, [videoEnded, pendingRarity, videoPlaying, videoFading, revealedRarity]);
 
   // Show simple black fade overlay while waiting for video to be ready (after wallet confirm)
-  const showWaitingFade = walletConfirmed && !videoPlaying && !videoEnded;
+  const showWaitingFade = walletConfirmed && !videoPlaying && !videoEnded && !revealedRarity;
   // Video overlay visible from playback start through fade
   const showVideoOverlay = videoPlaying && !videoUnmounted;
 
