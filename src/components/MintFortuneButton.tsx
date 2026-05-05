@@ -74,11 +74,13 @@ export function MintFortuneButton({
   rarity,
   onStatusChange,
   onRarityRevealed,
+  onWalletConfirmed,
 }: {
   fortune: FortuneData;
   rarity: Rarity;
   onStatusChange?: (status: MintStatus) => void;
   onRarityRevealed?: (rarity: Rarity) => void;
+  onWalletConfirmed?: (txHash: string) => void;
 }) {
   const [status, setStatus] = useState<MintStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
