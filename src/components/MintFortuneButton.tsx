@@ -132,6 +132,7 @@ export function MintFortuneButton({
 
       setTxHash(hash);
       setStatus("minting");
+      onWalletConfirmed?.(hash);
 
       const receipt = await pollReceipt(eth, hash);
 
