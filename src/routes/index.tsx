@@ -298,7 +298,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       <div className="reveal-composition">
         {showRarityBlock && (
           <div
-            className={`reveal-rarity-word in ${rarityRevealed ? "reveal-rarity-colored" : ""}`}
+            className={`reveal-rarity-word in ${rarityRevealed ? "reveal-rarity-colored reveal-rarity-settle" : ""}`}
             style={{
               color: rarityRevealed ? cfg.rarityColor : "#FFFFFF",
               letterSpacing: cfg.rarityLetterSpacing,
