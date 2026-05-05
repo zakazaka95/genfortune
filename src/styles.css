@@ -1247,34 +1247,180 @@
 }
 
 /* ──────────────────────────────────────────────────────────
-   RARITY SHOCKWAVE — full-screen pack-opening reveal
+   RARITY CEREMONY — cinematic 5-phase reveal (~5.2s total)
+   Phase 1: Silence (0–0.8s)   — dim everything, slight zoom
+   Phase 2: Emergence (0.8–2s) — soft white light + dust
+   Phase 3: Identity (2–3.2s)  — subtle rarity tint + ring
+   Phase 4: Reveal (3.2–4.2s)  — collapse → burst + flash
+   Phase 5: Settle (4.2–5.2s)  — soften to light tint
    ────────────────────────────────────────────────────────── */
-.rarity-shockwave {
+
+/* The underlying world dims & zooms during the ceremony */
+.reveal-world.reveal-world-dimmed {
+  animation: world-dim-zoom 5200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes world-dim-zoom {
+  0%   { filter: brightness(1) saturate(1);     transform: scale(1); }
+  15%  { filter: brightness(0.18) saturate(0.4); transform: scale(1.02); }     /* phase 1 dim */
+  60%  { filter: brightness(0.22) saturate(0.5); transform: scale(1.025); }    /* still dark through phases 2–3 */
+  62%  { filter: brightness(2.4) saturate(1.2); transform: scale(1.035); }    /* burst flash */
+  68%  { filter: brightness(1.05) saturate(1.05); transform: scale(1.01); }
+  100% { filter: brightness(1) saturate(1);     transform: scale(1); }
+}
+
+.rarity-ceremony {
   position: fixed;
-  left: 50%;
-  top: 50%;
-  width: 80px;
-  height: 80px;
-  margin-left: -40px;
-  margin-top: -40px;
-  border-radius: 50%;
-  transform: scale(0);
-  opacity: 1;
-  pointer-events: none;
+  inset: 0;
   z-index: 9999;
-  will-change: transform, opacity;
-  box-shadow: 0 0 80px 0 currentColor;
+  pointer-events: none;
+  overflow: hidden;
 }
-.rarity-shockwave-active {
-  animation: rarity-shockwave-seq 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.rarity-ceremony-done { display: none; }
+
+/* Dark veil — fades in fast, holds, then fades out at burst */
+.ceremony-veil {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(8,8,12,0.78) 0%, rgba(2,2,4,0.92) 70%, rgba(0,0,0,0.96) 100%);
+  opacity: 0;
+  animation: ceremony-veil 5200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-.rarity-shockwave-done {
+@keyframes ceremony-veil {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  60%  { opacity: 1; }
+  66%  { opacity: 0.15; } /* burst clears the dark */
+  100% { opacity: 0; }
+}
+
+/* Soft white emerging light — phases 2–3, tints to rarity color in phase 3 */
+.ceremony-light {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 22vmin; height: 22vmin;
+  margin-left: -11vmin; margin-top: -11vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 35%, rgba(255,255,255,0) 70%);
+  filter: blur(8px);
+  opacity: 0;
+  transform: scale(0.4);
+  mix-blend-mode: screen;
+  animation: ceremony-light 5200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes ceremony-light {
+  0%   { opacity: 0; transform: scale(0.3); background: radial-gradient(circle, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 70%); }
+  15%  { opacity: 0; transform: scale(0.35); }
+  /* Phase 2: emerge — pure white breathing */
+  22%  { opacity: 0.35; transform: scale(0.55); background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 35%, rgba(255,255,255,0) 70%); }
+  32%  { opacity: 0.55; transform: scale(0.85); }
+  38%  { opacity: 0.45; transform: scale(0.75); } /* breath out */
+  /* Phase 3: identity hint — slight tint */
+  45%  { opacity: 0.6;  transform: scale(0.9);
+         background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, color-mix(in oklab, var(--rarity-color) 25%, white) 30%, rgba(255,255,255,0) 70%); }
+  55%  { opacity: 0.8;  transform: scale(1.05);
+         background: radial-gradient(circle, rgba(255,255,255,1) 0%, color-mix(in oklab, var(--rarity-color) 50%, white) 35%, rgba(255,255,255,0) 70%); }
+  /* Phase 4: collapse → burst */
+  60%  { opacity: 1;    transform: scale(0.55); }    /* collapse inward */
+  62%  { opacity: 1;    transform: scale(40);        /* explode */
+         background: radial-gradient(circle, #ffffff 0%, color-mix(in oklab, var(--rarity-color) 70%, white) 25%, var(--rarity-color) 60%); }
+  100% { opacity: 0;    transform: scale(40); }
+}
+
+/* Slowly rotating ring around the light — phase 3 */
+.ceremony-ring {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 32vmin; height: 32vmin;
+  margin-left: -16vmin; margin-top: -16vmin;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--rarity-color) 60%, white);
+  box-shadow: 0 0 24px color-mix(in oklab, var(--rarity-color) 35%, transparent), inset 0 0 12px color-mix(in oklab, var(--rarity-color) 30%, transparent);
+  opacity: 0;
+  transform: scale(0.6) rotate(0deg);
+  animation: ceremony-ring 5200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes ceremony-ring {
+  0%, 38%   { opacity: 0; transform: scale(0.6) rotate(0deg); }
+  45%       { opacity: 0.25; transform: scale(0.85) rotate(20deg); }
+  55%       { opacity: 0.55; transform: scale(1) rotate(60deg); }
+  60%       { opacity: 0.7;  transform: scale(0.92) rotate(80deg); }
+  62%       { opacity: 0;    transform: scale(2.2) rotate(95deg); }
+  100%      { opacity: 0;    transform: scale(2.2) rotate(95deg); }
+}
+
+/* Sharp radial burst at phase 4 */
+.ceremony-burst {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 8vmin; height: 8vmin;
+  margin-left: -4vmin; margin-top: -4vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, color-mix(in oklab, var(--rarity-color) 60%, white) 35%, var(--rarity-color) 70%, transparent 100%);
   opacity: 0;
   transform: scale(0);
+  animation: ceremony-burst 5200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-@keyframes rarity-shockwave-seq {
-  0%   { transform: scale(0);    opacity: 1; }
-  42%  { transform: scale(30);   opacity: 1; } /* ~500ms expand */
-  75%  { transform: scale(30);   opacity: 1; } /* hold ~400ms */
-  100% { transform: scale(30);   opacity: 0; } /* fade out ~300ms */
+@keyframes ceremony-burst {
+  0%, 60%   { opacity: 0; transform: scale(0); }
+  62%       { opacity: 1; transform: scale(0.4); }
+  72%       { opacity: 0.85; transform: scale(28); }
+  82%       { opacity: 0.35; transform: scale(40); }
+  100%      { opacity: 0; transform: scale(40); }
 }
+
+/* Brief brightness flash */
+.ceremony-flash {
+  position: absolute; inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: ceremony-flash 5200ms linear forwards;
+}
+@keyframes ceremony-flash {
+  0%, 61%   { opacity: 0; }
+  62%       { opacity: 0.85; }
+  64%       { opacity: 0.4; }
+  68%       { opacity: 0; }
+  100%      { opacity: 0; }
+}
+
+/* Phase 5: soft tinted wash that lingers and fades */
+.ceremony-tint {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in oklab, var(--rarity-color) 12%, white) 0%, color-mix(in oklab, var(--rarity-color) 5%, white) 60%, transparent 100%);
+  opacity: 0;
+  animation: ceremony-tint 5200ms ease-out forwards;
+}
+@keyframes ceremony-tint {
+  0%, 62%   { opacity: 0; }
+  68%       { opacity: 0.8; }
+  85%       { opacity: 0.35; }
+  100%      { opacity: 0; }
+}
+
+/* Drifting dust drawn toward center during emergence */
+.ceremony-dust { position: absolute; inset: 0; pointer-events: none; }
+.ceremony-dust-mote {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 0 6px rgba(255,255,255,0.6);
+  opacity: 0;
+  animation: ceremony-dust-drift 2400ms ease-in forwards;
+}
+@keyframes ceremony-dust-drift {
+  0%   { opacity: 0; transform: translate(0,0) scale(0.5); }
+  20%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(calc((50vw - 50%) * 0.85), calc((50vh - 50%) * 0.85)) scale(0.2); }
+}
+
+/* Micro scale settle on the rarity word once revealed */
+.reveal-rarity-settle {
+  animation: rarity-settle 700ms cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+@keyframes rarity-settle {
+  0%   { transform: translateY(0) scale(1); }
+  35%  { transform: translateY(0) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+

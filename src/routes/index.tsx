@@ -183,8 +183,8 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Rarity reveal: "hidden" → "placeholder" (neutral white) → "shockwave" (full-screen ripple) → "revealed"
-  const [rarityPhase, setRarityPhase] = useState<"hidden" | "placeholder" | "shockwave" | "revealed">("hidden");
+  // Rarity reveal: "hidden" → "placeholder" (neutral white) → "ceremony" (full sequence) → "revealed"
+  const [rarityPhase, setRarityPhase] = useState<"hidden" | "placeholder" | "ceremony" | "revealed">("hidden");
 
   // Show neutral placeholder once the fortune step kicks in (pre-mint)
   useEffect(() => {
@@ -193,13 +193,15 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     }
   }, [step, rarityPhase]);
 
-  // When rarity arrives after mint, run the shockwave sequence
+  // When rarity arrives after mint, run the ceremony.
+  // Total ~5200ms. The underlying UI swaps to rarity color exactly at the burst moment (3200ms).
   useEffect(() => {
     if (!revealedRarity) return;
-    // Pack-opening: 500ms expand → 400ms hold → 300ms fade out = 1200ms total
-    setRarityPhase("shockwave");
-    const t = setTimeout(() => setRarityPhase("revealed"), 900); // swap colors mid-fade so UI is colored when overlay clears
-    return () => clearTimeout(t);
+    setRarityPhase("ceremony");
+    // Swap underlying UI color at the exact burst frame so the white flash hides the change.
+    const swapAt = 3200;
+    const t1 = setTimeout(() => setRarityPhase("revealed"), swapAt);
+    return () => { clearTimeout(t1); };
   }, [revealedRarity]);
 
   const showFortune = step === "fortune" || step === "meta"    || step === "settled";
@@ -208,26 +210,50 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
   const showRarityBlock = rarityPhase !== "hidden";
   const rarityRevealed = rarityPhase === "revealed" && revealedRarity !== null;
   const placeholderVisible = rarityPhase === "placeholder";
-  const shockwaveActive = rarityPhase === "shockwave";
+  const ceremonyActive = rarityPhase === "ceremony";
 
 
   const words = result.message.split(" ");
   let runningCharIdx = 0;
 
   return (
-    <div className={`reveal-world ${cfg.worldClass} ${step !== "enter" ? "reveal-world-in" : ""}`}>
+    <div className={`reveal-world ${cfg.worldClass} ${step !== "enter" ? "reveal-world-in" : ""} ${ceremonyActive ? "reveal-world-dimmed" : ""}`}>
       <div className="world-base" />
       <div className="world-vignette" />
       <div className="world-aurora" />
 
-      {(shockwaveActive || rarityPhase === "revealed") && revealedRarity && (
+      {(ceremonyActive || rarityPhase === "revealed") && revealedRarity && (
         <div
-          key={`shockwave-${revealedRarity}`}
-          className={`rarity-shockwave ${shockwaveActive ? "rarity-shockwave-active" : "rarity-shockwave-done"}`}
-          style={{ background: cfg.rarityColor }}
+          className={`rarity-ceremony ${ceremonyActive ? "rarity-ceremony-running" : "rarity-ceremony-done"}`}
+          style={{ ['--rarity-color' as any]: cfg.rarityColor } as React.CSSProperties}
           aria-hidden="true"
-        />
+        >
+          <div className="ceremony-veil" />
+          <div className="ceremony-dust">
+            {Array.from({ length: 28 }).map((_, i) => {
+              const angle = (i / 28) * Math.PI * 2 + (i % 3) * 0.3;
+              const dist = 30 + (i * 53) % 35;
+              return (
+                <span
+                  key={i}
+                  className="ceremony-dust-mote"
+                  style={{
+                    left: `calc(50% + ${Math.cos(angle) * dist}vmin)`,
+                    top: `calc(50% + ${Math.sin(angle) * dist}vmin)`,
+                    animationDelay: `${800 + (i * 37) % 600}ms`,
+                  }}
+                />
+              );
+            })}
+          </div>
+          <div className="ceremony-light" />
+          <div className="ceremony-ring" />
+          <div className="ceremony-burst" />
+          <div className="ceremony-flash" />
+          <div className="ceremony-tint" />
+        </div>
       )}
+
 
       {stars.length > 0 && (
         <div className="world-stars">
@@ -272,7 +298,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       <div className="reveal-composition">
         {showRarityBlock && (
           <div
-            className={`reveal-rarity-word in ${rarityRevealed ? "reveal-rarity-colored" : ""}`}
+            className={`reveal-rarity-word in ${rarityRevealed ? "reveal-rarity-colored reveal-rarity-settle" : ""}`}
             style={{
               color: rarityRevealed ? cfg.rarityColor : "#FFFFFF",
               letterSpacing: cfg.rarityLetterSpacing,
