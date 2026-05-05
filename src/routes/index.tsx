@@ -183,18 +183,30 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Once a rarity is revealed (after mint), advance to "rarity" visual state
+  // Rarity reveal animation: "hidden" → "placeholder" (neutral white) → "fading" → "revealed" (colored)
+  const [rarityPhase, setRarityPhase] = useState<"hidden" | "placeholder" | "fading" | "revealed">("hidden");
+
+  // Show neutral placeholder once the fortune step kicks in (pre-mint)
   useEffect(() => {
-    if (revealedRarity && (step === "settled" || step === "meta" || step === "fortune")) {
-      // ensure the rarity word gets shown
-      // step "settled" already shows everything; we toggle showRarity via revealedRarity flag
+    if (rarityPhase === "hidden" && (step === "fortune" || step === "meta" || step === "settled")) {
+      setRarityPhase("placeholder");
     }
-  }, [revealedRarity, step]);
+  }, [step, rarityPhase]);
+
+  // When rarity arrives after mint, run the reveal sequence
+  useEffect(() => {
+    if (!revealedRarity) return;
+    setRarityPhase("fading");
+    const t = setTimeout(() => setRarityPhase("revealed"), 500); // 200ms fade-out + 300ms pause
+    return () => clearTimeout(t);
+  }, [revealedRarity]);
 
   const showFortune = step === "fortune" || step === "meta"    || step === "settled";
   const showMeta    = step === "meta"    || step === "settled";
   const showButtons = step === "settled";
-  const showRarity  = revealedRarity !== null && (step === "fortune" || step === "meta" || step === "settled");
+  const showRarityBlock = rarityPhase !== "hidden";
+  const rarityRevealed = rarityPhase === "revealed" && revealedRarity !== null;
+  const placeholderVisible = rarityPhase === "placeholder";
 
   const words = result.message.split(" ");
   let runningCharIdx = 0;
@@ -246,16 +258,38 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       </div>
 
       <div className="reveal-composition">
-        {revealedRarity && (
-          <div className={`reveal-rarity-word ${showRarity ? "in" : ""}`}
-            style={{ color: cfg.rarityColor, letterSpacing: cfg.rarityLetterSpacing }}>
-            {revealedRarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
-            <span className="reveal-rarity-text">{revealedRarity}</span>
-            <span className="reveal-rarity-rule" style={{ background: cfg.rarityColor }} />
+        {showRarityBlock && (
+          <div
+            className={`reveal-rarity-word in ${rarityRevealed ? "reveal-rarity-colored" : ""}`}
+            style={{
+              color: rarityRevealed ? cfg.rarityColor : "#FFFFFF",
+              letterSpacing: cfg.rarityLetterSpacing,
+              ['--rarity-color' as any]: cfg.rarityColor,
+            } as React.CSSProperties}
+          >
+            {rarityRevealed && revealedRarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
+            <span
+              className="reveal-rarity-text"
+              style={{ opacity: placeholderVisible || rarityRevealed ? 1 : 0, transition: "opacity 300ms ease" }}
+            >
+              {rarityRevealed ? revealedRarity : "✦"}
+            </span>
+            <span
+              className="reveal-rarity-rule reveal-rarity-rule-animated"
+              style={{ background: rarityRevealed ? cfg.rarityColor : "rgba(255,255,255,0.5)" }}
+              data-revealed={rarityRevealed ? "true" : "false"}
+            />
           </div>
         )}
 
-        <p className={`reveal-fortune ${showFortune ? "in" : ""}`} style={{ color: cfg.textColor }}>
+        <p
+          className={`reveal-fortune ${showFortune ? "in" : ""} ${rarityRevealed ? "reveal-fortune-pulse" : ""}`}
+          style={{
+            color: cfg.textColor,
+            ['--rarity-color' as any]: cfg.rarityColor,
+          } as React.CSSProperties}
+        >
+
           <span className="reveal-quote" aria-hidden="true">“</span>
           {words.map((word, wi) => (
             <span key={wi} className="reveal-word">

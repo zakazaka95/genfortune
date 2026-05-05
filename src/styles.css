@@ -942,6 +942,36 @@
   opacity: 0.6;
 }
 
+/* Animated rule that expands from center on rarity reveal */
+.reveal-rarity-rule-animated {
+  transform: scaleX(0.2);
+  transform-origin: 50% 50%;
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1), background 500ms ease;
+  opacity: 0.85;
+  width: 32px;
+}
+.reveal-rarity-rule-animated[data-revealed="true"] {
+  transform: scaleX(1);
+}
+
+/* Word color transitions smoothly when rarity is revealed */
+.reveal-rarity-word {
+  transition:
+    opacity 800ms cubic-bezier(0.22,1,0.36,1),
+    transform 800ms cubic-bezier(0.22,1,0.36,1),
+    color 600ms ease;
+}
+
+/* One-shot glow pulse on the fortune text in the rarity color */
+.reveal-fortune-pulse {
+  animation: rarity-fortune-pulse 1100ms ease-out 1;
+}
+@keyframes rarity-fortune-pulse {
+  0%   { text-shadow: 0 0 0 transparent; }
+  35%  { text-shadow: 0 0 28px var(--rarity-color, rgba(255,255,255,0.6)), 0 0 12px var(--rarity-color, rgba(255,255,255,0.4)); }
+  100% { text-shadow: 0 0 0 transparent; }
+}
+
 /* LEGENDARY rarity styling */
 .world-legendary .reveal-rarity-word { font-size: 16px; }
 .world-legendary .reveal-rarity-text {
