@@ -141,23 +141,24 @@ export function MintFortuneButton({
         l.topics?.[0]?.toLowerCase() === FORTUNE_MINTED_TOPIC &&
         l.address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()
       );
+      let revealedRarity: Rarity | null = null;
       if (fortuneLog) {
-        // tokenId is indexed (topic[2])
         if (fortuneLog.topics?.[2]) setTokenId(BigInt(fortuneLog.topics[2]).toString());
-        // data: [uint8 rarity, uint256 cookieNumber] each padded to 32 bytes
         const data: string = fortuneLog.data || "0x";
         if (data.length >= 2 + 64) {
           const rarityHex = data.slice(2, 2 + 64);
           const rarityIdx = parseInt(rarityHex, 16);
-          const revealed = RARITY_BY_INDEX[rarityIdx] ?? "NORMAL";
-          onRarityRevealed?.(revealed);
+          revealedRarity = RARITY_BY_INDEX[rarityIdx] ?? "NORMAL";
         }
-      } else {
-        // Fallback: try ERC721 Transfer to extract tokenId
+      }
+      if (!fortuneLog || !revealedRarity) {
+        // Fallback: ERC721 Transfer for tokenId; default rarity so reveal still proceeds
         const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
         const log = receipt.logs?.find((l: any) => l.topics?.[0]?.toLowerCase() === TRANSFER_TOPIC);
         if (log?.topics?.[3]) setTokenId(BigInt(log.topics[3]).toString());
       }
+      // Always notify rarity (default NORMAL) so the post-mint UI never gets stuck
+      onRarityRevealed?.(revealedRarity ?? "NORMAL");
 
       setStatus("success");
     } catch (err: any) {
