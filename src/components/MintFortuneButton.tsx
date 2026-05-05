@@ -191,39 +191,66 @@ export function MintFortuneButton({
   }, [fortune, onMintResolved, onRarityRevealed, onWalletConfirmed]);
 
   const label: Record<MintStatus, string> = {
-    idle: "✦ Mint as NFT on Base",
+    idle: "→ Reveal Rarity • Mint on Base — $1",
     switching_network: "Switching to Base…",
     awaiting_wallet: "Confirm in wallet…",
     minting: "Minting…",
     success: "✦ Minted!",
-    error: "✦ Try again",
+    error: "→ Try again — $1",
   };
 
+  const isIdle = status === "idle" || status === "error";
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
       <button
         onClick={() => !isLoading && mint()}
         disabled={isLoading}
         style={{
-          padding: "10px 28px",
+          padding: "16px 36px",
           borderRadius: "999px",
-          border: `1px solid ${colors.accent}`,
-          background: "transparent",
-          color: colors.accent,
+          border: `1.5px solid ${colors.accent}`,
+          background: isIdle ? colors.accent : "transparent",
+          color: isIdle ? colors.text : colors.accent,
           fontFamily: "Georgia, serif",
-          fontSize: "13px",
-          letterSpacing: "2px",
+          fontSize: "15px",
+          fontWeight: 600,
+          letterSpacing: "1.2px",
           cursor: isLoading ? "not-allowed" : "pointer",
           opacity: isLoading ? 0.6 : 1,
-          boxShadow: `0 0 18px ${colors.glow}`,
-          transition: "all 0.2s ease",
+          boxShadow: `0 8px 24px ${colors.glow}, 0 0 32px ${colors.glow}`,
+          transition: "transform 0.18s ease, box-shadow 0.2s ease, filter 0.2s ease",
           whiteSpace: "nowrap",
         }}
-        onMouseEnter={e => { if (!isLoading) { const b = e.currentTarget; b.style.background = colors.accent; b.style.color = colors.text; }}}
-        onMouseLeave={e => { const b = e.currentTarget; b.style.background = "transparent"; b.style.color = colors.accent; }}
+        onMouseEnter={e => {
+          if (isLoading) return;
+          const b = e.currentTarget;
+          b.style.transform = "translateY(-2px)";
+          b.style.boxShadow = `0 12px 32px ${colors.glow}, 0 0 48px ${colors.glow}`;
+          b.style.filter = "brightness(1.05)";
+        }}
+        onMouseLeave={e => {
+          const b = e.currentTarget;
+          b.style.transform = "translateY(0)";
+          b.style.boxShadow = `0 8px 24px ${colors.glow}, 0 0 32px ${colors.glow}`;
+          b.style.filter = "none";
+        }}
+        onMouseDown={e => { e.currentTarget.style.transform = "translateY(0) scale(0.97)"; }}
+        onMouseUp={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1)"; }}
       >
         {label[status]}
       </button>
+
+      {isIdle && (
+        <>
+          <span style={{ fontSize: "12px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.95, textAlign: "center" }}>
+            Only minted fortunes reveal rarity
+          </span>
+          <span style={{ fontSize: "11px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.55, textAlign: "center" }}>
+            Reveal your fortune's rarity and mint it onchain
+          </span>
+        </>
+      )}
 
       {isLoading && (
         <span style={{ fontSize: "10px", letterSpacing: "2px", color: colors.accent, opacity: 0.6 }}>
@@ -236,17 +263,12 @@ export function MintFortuneButton({
       {status === "success" && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "10px", letterSpacing: "1.5px", color: colors.accent, opacity: 0.8 }}>
           {tokenId && <span>TOKEN #{tokenId}</span>}
-          
           {tokenId && <a href={`https://opensea.io/assets/base/${CONTRACT_ADDRESS}/${tokenId}`} target="_blank" rel="noopener noreferrer" style={{ color: colors.accent, textDecoration: "underline" }}>VIEW ON OPENSEA ↗</a>}
         </div>
       )}
 
       {status === "error" && error && (
         <span style={{ fontSize: "10px", color: "#FF6B6B", opacity: 0.8, maxWidth: "280px", textAlign: "center" }}>{error}</span>
-      )}
-
-      {status === "idle" && (
-        <span style={{ fontSize: "9px", letterSpacing: "1.5px", color: colors.accent, opacity: 0.35 }}>0.0004 ETH (~$1) ON BASE</span>
       )}
     </div>
   );
