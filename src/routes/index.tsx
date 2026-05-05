@@ -315,7 +315,7 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
           <div className={`reveal-rarity-word ${showRarity ? "in" : ""}`}
             style={{ color: cfg.rarityColor, letterSpacing: cfg.rarityLetterSpacing }}>
             {revealedRarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
-            <span className="reveal-rarity-text">{revealedRarity}</span>
+            <span className="reveal-rarity-text">{`- ${revealedRarity} -`}</span>
             <span className="reveal-rarity-rule" style={{ background: cfg.rarityColor }} />
           </div>
         )}
