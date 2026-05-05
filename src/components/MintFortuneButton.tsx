@@ -4,7 +4,6 @@ export type Rarity = "NORMAL" | "RARE" | "UNIQUE" | "LEGENDARY";
 
 export interface FortuneData {
   text: string;
-  rarity: Rarity;
   cookieNumber: number;
 }
 
@@ -18,21 +17,19 @@ const BASE_CHAIN = {
   blockExplorerUrls: ["https://basescan.org"],
 };
 
-const CONTRACT_ADDRESS = "0xf98b8f4aCf3F2B799787afce831570Bc939A907F";
+const CONTRACT_ADDRESS = "0x33007651eb41c8E2115C2c9Dc65C68d2c05F239B";
 const MINT_PRICE = "400000000000000";
 
-const RARITY_ENUM: Record<Rarity, number> = {
-  NORMAL: 0, RARE: 1, UNIQUE: 2, LEGENDARY: 3,
-};
+const RARITY_BY_INDEX: Rarity[] = ["NORMAL", "RARE", "UNIQUE", "LEGENDARY"];
 
-function encodeMintFortune(to: string, text: string, rarity: number, cookieNum: number): string {
-  const SELECTOR = "0x1e300e9b";
+// New ABI: mintFortune(string text, uint256 cookieNum)
+function encodeMintFortune(text: string, cookieNum: number): string {
+  const SELECTOR = "0xcb6049e5";
   const pad32 = (hex: string) => hex.replace("0x", "").padStart(64, "0");
   const toHex = (n: number | bigint) => BigInt(n).toString(16);
 
-  const addrPadded = pad32(to.toLowerCase());
-  const stringOffset = pad32(toHex(0x80));
-  const rarityPadded = pad32(toHex(rarity));
+  // ABI encoding: head = [offset_to_string(=0x40), cookieNum], tail = [string_len, string_data_padded]
+  const stringOffset = pad32(toHex(0x40));
   const cookiePadded = pad32(toHex(cookieNum));
 
   const encoder = new TextEncoder();
@@ -45,7 +42,7 @@ function encodeMintFortune(to: string, text: string, rarity: number, cookieNum: 
     .join("")
     .padEnd(paddedLen * 2, "0");
 
-  return SELECTOR + addrPadded + stringOffset + rarityPadded + cookiePadded + textLenPadded + textHex;
+  return SELECTOR + stringOffset + cookiePadded + textLenPadded + textHex;
 }
 
 export type MintStatus = "idle" | "switching_network" | "awaiting_wallet" | "minting" | "success" | "error";
@@ -69,7 +66,20 @@ const RARITY_COLORS: Record<Rarity, { accent: string; glow: string; text: string
   NORMAL:    { accent: "#1A1A1A", glow: "rgba(0,0,0,0.15)", text: "#F8F6F0" },
 };
 
-export function MintFortuneButton({ fortune, rarity, onStatusChange }: { fortune: FortuneData; rarity: Rarity; onStatusChange?: (status: MintStatus) => void }) {
+// keccak256("FortuneMinted(address,uint256,uint8,uint256)")
+const FORTUNE_MINTED_TOPIC = "0x81f4771f10f01707d9d09da1bd3525dd7474a1ab9f505a422c99f3275bce9d2a";
+
+export function MintFortuneButton({
+  fortune,
+  rarity,
+  onStatusChange,
+  onRarityRevealed,
+}: {
+  fortune: FortuneData;
+  rarity: Rarity;
+  onStatusChange?: (status: MintStatus) => void;
+  onRarityRevealed?: (rarity: Rarity) => void;
+}) {
   const [status, setStatus] = useState<MintStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [tokenId, setTokenId] = useState<string | null>(null);
@@ -104,14 +114,13 @@ export function MintFortuneButton({ fortune, rarity, onStatusChange }: { fortune
       }
 
       setStatus("awaiting_wallet");
-      const calldata = encodeMintFortune(account, fortune.text, RARITY_ENUM[fortune.rarity], fortune.cookieNumber);
+      const calldata = encodeMintFortune(fortune.text, fortune.cookieNumber);
 
       // ERC-8021 Base Builder Code attribution
       const builderCode = "bc_1o7xvetk";
       const codeBytes = new TextEncoder().encode(builderCode);
       const codeHex = Array.from(codeBytes).map(b => b.toString(16).padStart(2, "0")).join("");
       const codeLenHex = codeBytes.length.toString(16).padStart(4, "0");
-      // Builder code data comes first, then the 8021 magic bytes LAST (last 16 bytes must be 8021 repeating)
       const suffix = codeLenHex + codeHex + "80218021802180218021802180218021";
 
       const hash: string = await eth.request({
@@ -123,16 +132,36 @@ export function MintFortuneButton({ fortune, rarity, onStatusChange }: { fortune
       setStatus("minting");
 
       const receipt = await pollReceipt(eth, hash);
-      const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-      const log = receipt.logs?.find((l: any) => l.topics?.[0]?.toLowerCase() === TRANSFER_TOPIC);
-      if (log?.topics?.[3]) setTokenId(BigInt(log.topics[3]).toString());
+
+      // Parse FortuneMinted event for tokenId + rarity
+      const fortuneLog = receipt.logs?.find((l: any) =>
+        l.topics?.[0]?.toLowerCase() === FORTUNE_MINTED_TOPIC &&
+        l.address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()
+      );
+      if (fortuneLog) {
+        // tokenId is indexed (topic[2])
+        if (fortuneLog.topics?.[2]) setTokenId(BigInt(fortuneLog.topics[2]).toString());
+        // data: [uint8 rarity, uint256 cookieNumber] each padded to 32 bytes
+        const data: string = fortuneLog.data || "0x";
+        if (data.length >= 2 + 64) {
+          const rarityHex = data.slice(2, 2 + 64);
+          const rarityIdx = parseInt(rarityHex, 16);
+          const revealed = RARITY_BY_INDEX[rarityIdx] ?? "NORMAL";
+          onRarityRevealed?.(revealed);
+        }
+      } else {
+        // Fallback: try ERC721 Transfer to extract tokenId
+        const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+        const log = receipt.logs?.find((l: any) => l.topics?.[0]?.toLowerCase() === TRANSFER_TOPIC);
+        if (log?.topics?.[3]) setTokenId(BigInt(log.topics[3]).toString());
+      }
 
       setStatus("success");
     } catch (err: any) {
       setError(err.code === 4001 ? "Transaction rejected." : (err.message ?? "Mint failed."));
       setStatus("error");
     }
-  }, [fortune]);
+  }, [fortune, onRarityRevealed]);
 
   const label: Record<MintStatus, string> = {
     idle: "✦ Mint as NFT on Base",
