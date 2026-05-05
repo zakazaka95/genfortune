@@ -242,14 +242,9 @@ export function MintFortuneButton({
       </button>
 
       {isIdle && (
-        <>
-          <span style={{ fontSize: "12px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.95, textAlign: "center" }}>
-            Only minted fortunes reveal rarity
-          </span>
-          <span style={{ fontSize: "11px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.55, textAlign: "center" }}>
-            Reveal your fortune's rarity and mint it onchain
-          </span>
-        </>
+        <span style={{ fontSize: "12px", fontFamily: "Georgia, serif", color: colors.accent, opacity: 0.85, textAlign: "center" }}>
+          Only minted fortunes reveal rarity (~$1 mint)
+        </span>
       )}
 
       {isLoading && (
