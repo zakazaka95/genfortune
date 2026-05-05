@@ -1395,3 +1395,9 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-5px); }
 }
+
+.cookie-img { transition: filter 0.4s ease; }
+.cookie-breathe:hover .cookie-img,
+.cookie-cracking .cookie-img {
+  filter: brightness(1.05) drop-shadow(0 0 18px rgba(255,255,255,0.55)) drop-shadow(0 0 36px rgba(255,255,255,0.3));
+}
