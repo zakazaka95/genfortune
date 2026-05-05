@@ -165,27 +165,36 @@ function makeParticles(count: number, seedOffset = 0) {
 function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onOpenAnother: () => void }) {
   const [step, setStep] = useState<RevealStep>("enter");
   const [mintStatus, setMintStatus] = useState<MintStatus>("idle");
-  const minted = mintStatus === "success";
-  const cfg = RARITY_WORLDS[result.rarity] ?? RARITY_WORLDS.NORMAL;
-  const rarity = result.rarity;
+  const [revealedRarity, setRevealedRarity] = useState<Rarity | null>(null);
+  const minted = mintStatus === "success" && revealedRarity !== null;
+  const activeRarity: Rarity = revealedRarity ?? "NORMAL";
+  const cfg = RARITY_WORLDS[activeRarity];
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const particles = useRef(makeParticles(cfg.particleCount, rarity.charCodeAt(0))).current;
-  const stars = useRef(cfg.starCount > 0 ? makeParticles(cfg.starCount, rarity.charCodeAt(1) + 13) : []).current;
+  const particles = useRef(makeParticles(cfg.particleCount, activeRarity.charCodeAt(0))).current;
+  const stars = useRef(cfg.starCount > 0 ? makeParticles(cfg.starCount, activeRarity.charCodeAt(1) + 13) : []).current;
 
   useEffect(() => {
     const timers = timerRefs.current;
     timers.push(setTimeout(() => setStep("atmosphere"), 80));
-    timers.push(setTimeout(() => setStep("rarity"), 900));
-    timers.push(setTimeout(() => setStep("fortune"), 1700));
-    timers.push(setTimeout(() => setStep("meta"), 3400));
-    timers.push(setTimeout(() => setStep("settled"), 4100));
+    // Skip the rarity step here — rarity reveals later, after mint
+    timers.push(setTimeout(() => setStep("fortune"), 900));
+    timers.push(setTimeout(() => setStep("meta"), 2600));
+    timers.push(setTimeout(() => setStep("settled"), 3300));
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const showRarity  = step === "rarity"  || step === "fortune" || step === "meta" || step === "settled";
+  // Once a rarity is revealed (after mint), advance to "rarity" visual state
+  useEffect(() => {
+    if (revealedRarity && (step === "settled" || step === "meta" || step === "fortune")) {
+      // ensure the rarity word gets shown
+      // step "settled" already shows everything; we toggle showRarity via revealedRarity flag
+    }
+  }, [revealedRarity, step]);
+
   const showFortune = step === "fortune" || step === "meta"    || step === "settled";
   const showMeta    = step === "meta"    || step === "settled";
   const showButtons = step === "settled";
+  const showRarity  = revealedRarity !== null && (step === "fortune" || step === "meta" || step === "settled");
 
   const words = result.message.split(" ");
   let runningCharIdx = 0;
@@ -237,12 +246,14 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
       </div>
 
       <div className="reveal-composition">
-        <div className={`reveal-rarity-word ${showRarity ? "in" : ""}`}
-          style={{ color: cfg.rarityColor, letterSpacing: cfg.rarityLetterSpacing }}>
-          {rarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
-          <span className="reveal-rarity-text">{rarity}</span>
-          <span className="reveal-rarity-rule" style={{ background: cfg.rarityColor }} />
-        </div>
+        {revealedRarity && (
+          <div className={`reveal-rarity-word ${showRarity ? "in" : ""}`}
+            style={{ color: cfg.rarityColor, letterSpacing: cfg.rarityLetterSpacing }}>
+            {revealedRarity === "LEGENDARY" && <span className="rarity-trophy-glow" aria-hidden="true" />}
+            <span className="reveal-rarity-text">{revealedRarity}</span>
+            <span className="reveal-rarity-rule" style={{ background: cfg.rarityColor }} />
+          </div>
+        )}
 
         <p className={`reveal-fortune ${showFortune ? "in" : ""}`} style={{ color: cfg.textColor }}>
           <span className="reveal-quote" aria-hidden="true">“</span>
@@ -279,28 +290,30 @@ function CinematicReveal({ result, onOpenAnother }: { result: FortuneResult; onO
         <div className={`reveal-actions ${showButtons ? "in" : ""}`}>
           <button
             onClick={() => {
-              const text = `The AI gods blessed me with a ${rarity} fortune:\n\n"${result.message}"\n\nPowered by @GenLayer — the only chain where AI runs at consensus layer.\n\nOpen yours 👇\nhttps://genfortune.xyz`;
+              const rarityPart = revealedRarity ? `a ${revealedRarity} ` : "an AI ";
+              const text = `The AI gods blessed me with ${rarityPart}fortune:\n\n"${result.message}"\n\nPowered by @GenLayer — the only chain where AI runs at consensus layer.\n\nOpen yours 👇\nhttps://genfortune.xyz`;
               window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
             }}
-            className={`reveal-share reveal-share-${rarity.toLowerCase()}`}
+            className={`reveal-share reveal-share-${activeRarity.toLowerCase()}`}
           >
             Share on X ✦
           </button>
           <MintFortuneButton
-            fortune={{ text: result.message, rarity: result.rarity, cookieNumber: result.cookie_number }}
-            rarity={result.rarity}
+            fortune={{ text: result.message, cookieNumber: result.cookie_number }}
+            rarity={activeRarity}
             onStatusChange={setMintStatus}
+            onRarityRevealed={setRevealedRarity}
           />
           {minted && (
             <div className="reveal-cta-row reveal-cta-row-in">
-              <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-secondary reveal-cta-${rarity.toLowerCase()}`}>
+              <button onClick={onOpenAnother} className={`reveal-cta reveal-cta-secondary reveal-cta-${activeRarity.toLowerCase()}`}>
                 Open Another
               </button>
               <a
                 href="https://genmarket.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`reveal-cta reveal-cta-primary reveal-cta-${rarity.toLowerCase()}`}
+                className={`reveal-cta reveal-cta-primary reveal-cta-${activeRarity.toLowerCase()}`}
               >
                 List on GenMarket ↗
               </a>
