@@ -102,13 +102,6 @@ This is what GenLayer's Equivalence Principle describes as qualitative evaluatio
 
 ---
 
-## Demo
-
-Full flow from interaction to mint available in the demo video.
-https://youtu.be/Y__3nbu1pjM
-
----
-
 ## Example flow
 
     Open cookie
