@@ -662,7 +662,7 @@ function FortuneCookieApp() {
       filter: introDone ? "blur(0px)" : "blur(6px)",
       transition: "opacity 0.8s ease-out, transform 0.8s ease-out, filter 0.8s ease-out",
     }}>
-      <h1 className="sr-only">Fortune Cookie</h1>
+      <h1 className="sr-only">GenFortune — AI Fortune Cookies on GenLayer</h1>
 
       {(phase === "idle" || phase === "connected") && <div className="oracle-pattern" />}
 
