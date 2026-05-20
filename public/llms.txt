@@ -1,0 +1,7 @@
+# GenFortune
+
+> AI-generated fortune cookies onchain. Pay 0.1 GEN, get a unique fortune powered by GenLayer x Base.
+
+## Pages
+
+- [Home](/): Mint your AI fortune cookie onchain.
